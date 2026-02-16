@@ -33,8 +33,8 @@ const ProposalOutput = ({ proposal, meta, onReset }: Props) => {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleDownload = () => {
-    generateStyledPDF(proposal, meta);
+  const handleDownload = async () => {
+    await generateStyledPDF(proposal, meta);
     toast({ title: "PDF downloaded" });
   };
 
