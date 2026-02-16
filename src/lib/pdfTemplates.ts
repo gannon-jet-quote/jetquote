@@ -124,8 +124,24 @@ function parseProposalSections(proposal: string): { title: string; content: stri
   return sections;
 }
 
-export function generateStyledPDF(proposal: string, meta: ProposalMeta): void {
+async function loadLogoAsBase64(): Promise<string | null> {
+  try {
+    const response = await fetch("/jetquote-logo.png");
+    const blob = await response.blob();
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = () => resolve(null);
+      reader.readAsDataURL(blob);
+    });
+  } catch {
+    return null;
+  }
+}
+
+export async function generateStyledPDF(proposal: string, meta: ProposalMeta): Promise<void> {
   const tone = meta.tone || "standard";
+  const logoBase64 = await loadLogoAsBase64();
   const theme = themes[tone] || themes.standard;
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   const pageW = doc.internal.pageSize.getWidth();
@@ -185,14 +201,24 @@ export function generateStyledPDF(proposal: string, meta: ProposalMeta): void {
   };
 
   // ===== HEADER =====
-  const headerH = tone === "luxury" ? 48 : 40;
+  const logoW = 30;
+  const logoH = 12;
+  const headerH = tone === "luxury" ? 52 : 44;
   setFillColor(theme.headerBg);
   doc.rect(0, 0, pageW, headerH, "F");
+
+  // Logo
+  const textStartX = marginX + (logoBase64 ? logoW + 4 : 0);
+  if (logoBase64) {
+    try {
+      doc.addImage(logoBase64, "PNG", marginX, tone === "luxury" ? 8 : 6, logoW, logoH);
+    } catch { /* logo failed to load, continue without */ }
+  }
 
   // Business name
   setFont("bold", theme.headerSize);
   setColor(theme.headerText);
-  doc.text(meta.businessName, marginX, tone === "luxury" ? 22 : 18);
+  doc.text(meta.businessName, textStartX, tone === "luxury" ? 16 : 14);
 
   // Contact line
   setFont("normal", 9);
@@ -201,7 +227,7 @@ export function generateStyledPDF(proposal: string, meta: ProposalMeta): void {
   } else {
     setColor([200, 200, 210]);
   }
-  doc.text(`${meta.businessPhone}  |  ${meta.businessEmail}`, marginX, tone === "luxury" ? 30 : 26);
+  doc.text(`${meta.businessPhone}  |  ${meta.businessEmail}`, textStartX, tone === "luxury" ? 24 : 22);
 
   // Licensed badge
   if (meta.licensedInsured) {
@@ -209,7 +235,7 @@ export function generateStyledPDF(proposal: string, meta: ProposalMeta): void {
     setFont("bold", 8);
     const bw = doc.getTextWidth(badgeText) + 8;
     const bx = pageW - marginX - bw;
-    const by = tone === "luxury" ? 15 : 12;
+    const by = tone === "luxury" ? 10 : 8;
     if (tone === "luxury") {
       setFillColor(theme.accentColor);
       doc.roundedRect(bx, by, bw, 7, 1, 1, "F");
@@ -227,10 +253,10 @@ export function generateStyledPDF(proposal: string, meta: ProposalMeta): void {
   setFont("bold", 13);
   if (tone === "luxury") {
     setColor(theme.accentColor);
-    doc.text("SERVICE PROPOSAL", marginX, 40);
+    doc.text("SERVICE PROPOSAL", marginX, 44);
   } else {
     setColor(theme.headerText);
-    doc.text("SERVICE PROPOSAL", marginX, tone === "luxury" ? 40 : 34);
+    doc.text("SERVICE PROPOSAL", marginX, 38);
   }
 
   y = headerH + 10;
