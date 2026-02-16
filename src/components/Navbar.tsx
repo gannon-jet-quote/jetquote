@@ -4,9 +4,9 @@ import logo from "@/assets/jetquote-logo.png";
 const Navbar = () => {
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 glass">
-      <div className="container mx-auto flex h-20 items-center justify-between px-6">
-        <Link to="/" className="flex items-center gap-3">
-          <img src={logo} alt="JetQuote" className="h-12" />
+      <div className="container mx-auto flex h-16 items-center justify-between px-6">
+        <Link to="/" className="flex items-center gap-2">
+          <img src={logo} alt="JetQuote" className="h-8" />
         </Link>
         <Link
           to="/generate"
