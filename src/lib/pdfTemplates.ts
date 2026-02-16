@@ -165,63 +165,68 @@ export function generateStyledPDF(proposal: string, meta: ProposalMeta): void {
   // ZONE 1: TOP HEADER (business name + contact)
   // ════════════════════════════════════════════════
 
-  if (tone === "luxury" && theme.headerBg) {
+  const isLuxury = tone === "luxury";
+  const isPremium = tone === "premium";
+  const headerNameSize = isLuxury ? 26 : isPremium ? 22 : 20;
+  const contactSize = 8.5;
+
+  if (isLuxury && theme.headerBg) {
     setF(doc, theme.headerBg);
-    doc.rect(0, 0, W, 26, "F");
+    doc.rect(0, 0, W, 30, "F");
 
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(18);
+    doc.setFontSize(headerNameSize);
     setC(doc, theme.headerText);
-    doc.text(meta.businessName.toUpperCase(), mx, 13);
+    doc.text(meta.businessName.toUpperCase(), mx, 16);
 
     if (meta.licensedInsured) {
-      doc.setFontSize(18);
+      doc.setFontSize(headerNameSize);
       const nameW = doc.getTextWidth(meta.businessName.toUpperCase());
       const badge = "LICENSED & INSURED";
       doc.setFont("helvetica", "bold");
-      doc.setFontSize(6);
-      const bw = doc.getTextWidth(badge) + 4;
+      doc.setFontSize(6.5);
+      const bw = doc.getTextWidth(badge) + 5;
       const badgeX = mx + nameW + 5;
       setF(doc, theme.accentColor);
-      doc.roundedRect(badgeX, 9, bw, 5, 1, 1, "F");
+      doc.roundedRect(badgeX, 12, bw, 5.5, 1, 1, "F");
       setC(doc, [10, 10, 14]);
-      doc.text(badge, badgeX + 2, 12.2);
+      doc.text(badge, badgeX + 2.5, 15.5);
     }
 
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(7.5);
+    doc.setFontSize(contactSize);
     setC(doc, theme.accentColor);
-    doc.text(meta.businessPhone, W - mx, 10, { align: "right" });
-    doc.text(meta.businessEmail, W - mx, 14, { align: "right" });
-    doc.text(`Date: ${today}`, W - mx, 18, { align: "right" });
+    doc.text(meta.businessPhone, W - mx, 12, { align: "right" });
+    doc.text(meta.businessEmail, W - mx, 16.5, { align: "right" });
+    doc.text(`Date: ${today}`, W - mx, 21, { align: "right" });
 
-    y = 30;
+    y = 34;
   } else {
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(16);
+    doc.setFontSize(headerNameSize);
     setC(doc, theme.headerText);
-    doc.text(meta.businessName, mx, 13);
+    doc.text(meta.businessName, mx, 15);
 
     if (meta.licensedInsured) {
       const badge = "Licensed & Insured";
       doc.setFont("helvetica", "bold");
-      doc.setFontSize(6.5);
+      doc.setFontSize(7);
       const bw = doc.getTextWidth(badge) + 5;
       setD(doc, theme.accentColor);
       doc.setLineWidth(0.35);
-      doc.roundedRect(mx, 16, bw, 5, 1, 1, "S");
+      doc.roundedRect(mx, 18, bw, 5.5, 1, 1, "S");
       setC(doc, theme.accentColor);
-      doc.text(badge, mx + 2.5, 19.3);
+      doc.text(badge, mx + 2.5, 21.5);
     }
 
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(7.5);
+    doc.setFontSize(contactSize);
     setC(doc, theme.lightGray);
-    doc.text(meta.businessPhone, W - mx, 10, { align: "right" });
-    doc.text(meta.businessEmail, W - mx, 14, { align: "right" });
-    doc.text(`Date: ${today}`, W - mx, 18, { align: "right" });
+    doc.text(meta.businessPhone, W - mx, 11, { align: "right" });
+    doc.text(meta.businessEmail, W - mx, 15.5, { align: "right" });
+    doc.text(`Date: ${today}`, W - mx, 20, { align: "right" });
 
-    y = 24;
+    y = 27;
   }
 
   drawDivider(doc, y, mx, W, theme.dividerColor);
@@ -235,21 +240,21 @@ export function generateStyledPDF(proposal: string, meta: ProposalMeta): void {
   const col2X = W / 2 + 5;
 
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(6.5);
+  doc.setFontSize(7.5);
   setC(doc, theme.lightGray);
   doc.text("PREPARED FOR", col1X, y);
   doc.text("PREPARED BY", col2X, y);
-  y += 3.5;
+  y += 4;
 
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(9);
+  doc.setFontSize(11);
   setC(doc, theme.headingColor);
   doc.text(meta.clientName, col1X, y);
   doc.text(meta.businessName, col2X, y);
-  y += 3.5;
+  y += 4;
 
   doc.setFont("helvetica", "normal");
-  doc.setFontSize(7.5);
+  doc.setFontSize(8.5);
   setC(doc, theme.bodyColor);
 
   const addrLines = doc.splitTextToSize(meta.serviceAddress, cw / 2 - 10);
@@ -277,23 +282,27 @@ export function generateStyledPDF(proposal: string, meta: ProposalMeta): void {
   // ZONE 3: SCOPE OF WORK (condensed)
   // ════════════════════════════════════════════════
 
+  const sectionHeaderSize = isLuxury ? 10.5 : isPremium ? 10 : 9.5;
+  const bodySize = isLuxury ? 9 : isPremium ? 8.5 : 8.5;
+  const bodyLineH = isLuxury ? 3.8 : 3.5;
+
   const writeSection = (title: string, content: string, maxLines: number) => {
     if (!content || !content.trim()) return;
 
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(8);
+    doc.setFontSize(sectionHeaderSize);
     setC(doc, theme.accentColor);
     doc.text(title.toUpperCase(), mx, y);
-    y += 1;
-    if (tone === "premium" || tone === "luxury") {
+    y += 1.2;
+    if (isPremium || isLuxury) {
       setD(doc, theme.accentColor);
       doc.setLineWidth(0.4);
       doc.line(mx, y, mx + doc.getTextWidth(title.toUpperCase()), y);
     }
-    y += 3;
+    y += 3.5;
 
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(7.5);
+    doc.setFontSize(bodySize);
     setC(doc, theme.bodyColor);
     const allLines = content.split("\n");
     let written = 0;
@@ -305,11 +314,11 @@ export function generateStyledPDF(proposal: string, meta: ProposalMeta): void {
       for (const wl of wrapped) {
         if (written >= maxLines) break;
         doc.text(wl, mx + (isBullet ? 2 : 0), y);
-        y += 3;
+        y += bodyLineH;
         written++;
       }
     }
-    y += 1;
+    y += 1.5;
   };
 
   if (scopeSection) {
@@ -342,24 +351,25 @@ export function generateStyledPDF(proposal: string, meta: ProposalMeta): void {
 
     // Title
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(9);
+    doc.setFontSize(sectionHeaderSize);
     setC(doc, theme.headingColor);
     doc.text(investmentSection.title.toUpperCase(), mx + 5, y + 5);
     y += 8;
 
     // Large price
+    const priceSize = isLuxury ? 26 : isPremium ? 24 : 22;
     if (price) {
       doc.setFont("helvetica", "bold");
-      doc.setFontSize(18);
+      doc.setFontSize(priceSize);
       setC(doc, theme.accentColor);
-      doc.text(price, mx + 5, y + 4);
-      y += priceLineH;
+      doc.text(price, mx + 5, y + 5);
+      y += priceLineH + 2;
     }
 
     // Detail text
     if (detailLines.length > 0) {
       doc.setFont("helvetica", "normal");
-      doc.setFontSize(7.5);
+      doc.setFontSize(bodySize);
       setC(doc, theme.bodyColor);
       for (let i = 0; i < Math.min(detailLines.length, 4); i++) {
         doc.text(detailLines[i], mx + 5, y);
@@ -412,12 +422,12 @@ export function generateStyledPDF(proposal: string, meta: ProposalMeta): void {
   // Satisfaction Guarantee
   if (meta.satisfactionGuarantee) {
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(7.5);
+    doc.setFontSize(8.5);
     setC(doc, theme.accentColor);
     doc.text("SATISFACTION GUARANTEE", mx, y);
-    y += 3;
+    y += 3.5;
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(7);
+    doc.setFontSize(8);
     setC(doc, theme.bodyColor);
     const gText = guaranteeSection?.content || "Your satisfaction is our top priority. We stand behind the quality of our work.";
     const gLines = doc.splitTextToSize(gText, cw);
@@ -430,12 +440,12 @@ export function generateStyledPDF(proposal: string, meta: ProposalMeta): void {
 
   // Consolidated Next Steps
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(7.5);
+  doc.setFontSize(8.5);
   setC(doc, theme.accentColor);
   doc.text("NEXT STEPS", mx, y);
-  y += 3;
+  y += 3.5;
   doc.setFont("helvetica", "normal");
-  doc.setFontSize(7);
+  doc.setFontSize(8);
   setC(doc, theme.bodyColor);
 
   const nextStepsText = nextStepsSection?.content
@@ -450,7 +460,7 @@ export function generateStyledPDF(proposal: string, meta: ProposalMeta): void {
   const bottomY = H - 7;
   drawDivider(doc, bottomY - 3, mx, W, theme.dividerColor);
   doc.setFont("helvetica", "normal");
-  doc.setFontSize(6.5);
+  doc.setFontSize(7);
   setC(doc, theme.lightGray);
   doc.text(meta.businessName, mx, bottomY);
   doc.text(`${meta.businessPhone}  |  ${meta.businessEmail}`, W / 2, bottomY, { align: "center" });
