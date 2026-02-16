@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { Loader2 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import ConditionalFields from "@/components/ConditionalFields";
-import ProposalOutput from "@/components/ProposalOutput";
+import ProposalOutput, { type ProposalMeta } from "@/components/ProposalOutput";
 import { serviceTypes, toneOptions } from "@/config/serviceTypes";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -151,7 +151,21 @@ const ProposalGenerator = () => {
       <div className="min-h-screen bg-background">
         <Navbar />
         <div className="container mx-auto px-6 pt-24 pb-16">
-          <ProposalOutput proposal={proposal} onReset={handleReset} />
+          <ProposalOutput
+            proposal={proposal}
+            meta={{
+              tone: form.tone,
+              businessName: form.businessName,
+              businessPhone: form.businessPhone,
+              businessEmail: form.businessEmail,
+              clientName: form.clientName,
+              clientEmail: form.clientEmail || undefined,
+              serviceAddress: form.serviceAddress,
+              licensedInsured: form.licensedInsured,
+              satisfactionGuarantee: form.satisfactionGuarantee,
+            }}
+            onReset={handleReset}
+          />
         </div>
       </div>
     );

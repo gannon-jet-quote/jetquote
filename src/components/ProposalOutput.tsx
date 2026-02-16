@@ -2,14 +2,27 @@ import { useState } from "react";
 import { Copy, Download, Plus, Check } from "lucide-react";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
-import jsPDF from "jspdf";
+import { generateStyledPDF } from "@/lib/pdfTemplates";
+
+export interface ProposalMeta {
+  tone: string;
+  businessName: string;
+  businessPhone: string;
+  businessEmail: string;
+  clientName: string;
+  clientEmail?: string;
+  serviceAddress: string;
+  licensedInsured: boolean;
+  satisfactionGuarantee: boolean;
+}
 
 interface Props {
   proposal: string;
+  meta: ProposalMeta;
   onReset: () => void;
 }
 
-const ProposalOutput = ({ proposal, onReset }: Props) => {
+const ProposalOutput = ({ proposal, meta, onReset }: Props) => {
   const { toast } = useToast();
   const [copied, setCopied] = useState(false);
 
@@ -21,20 +34,7 @@ const ProposalOutput = ({ proposal, onReset }: Props) => {
   };
 
   const handleDownload = () => {
-    const doc = new jsPDF();
-    const lines = doc.splitTextToSize(proposal, 170);
-    doc.setFont("helvetica");
-    doc.setFontSize(11);
-    let y = 20;
-    for (const line of lines) {
-      if (y > 275) {
-        doc.addPage();
-        y = 20;
-      }
-      doc.text(line, 20, y);
-      y += 6;
-    }
-    doc.save("JetQuote-Proposal.pdf");
+    generateStyledPDF(proposal, meta);
     toast({ title: "PDF downloaded" });
   };
 
