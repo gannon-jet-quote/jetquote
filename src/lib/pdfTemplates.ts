@@ -22,8 +22,6 @@ interface ToneTheme {
   dividerColor: [number, number, number];
   investmentBg: [number, number, number];
   investmentBorder: [number, number, number];
-  tableHeaderBg: [number, number, number];
-  tableHeaderText: [number, number, number];
 }
 
 const themes: Record<string, ToneTheme> = {
@@ -37,8 +35,6 @@ const themes: Record<string, ToneTheme> = {
     dividerColor: [200, 200, 205],
     investmentBg: [245, 245, 248],
     investmentBorder: [180, 180, 185],
-    tableHeaderBg: [40, 40, 45],
-    tableHeaderText: [255, 255, 255],
   },
   friendly: {
     headerBg: null,
@@ -50,8 +46,6 @@ const themes: Record<string, ToneTheme> = {
     dividerColor: [180, 210, 240],
     investmentBg: [235, 245, 255],
     investmentBorder: [100, 160, 220],
-    tableHeaderBg: [35, 80, 150],
-    tableHeaderText: [255, 255, 255],
   },
   premium: {
     headerBg: null,
@@ -63,8 +57,6 @@ const themes: Record<string, ToneTheme> = {
     dividerColor: [200, 200, 210],
     investmentBg: [240, 242, 255],
     investmentBorder: [80, 100, 220],
-    tableHeaderBg: [50, 50, 70],
-    tableHeaderText: [255, 255, 255],
   },
   luxury: {
     headerBg: [10, 10, 14],
@@ -76,12 +68,13 @@ const themes: Record<string, ToneTheme> = {
     dividerColor: [210, 200, 185],
     investmentBg: [250, 248, 242],
     investmentBorder: [180, 155, 100],
-    tableHeaderBg: [10, 10, 14],
-    tableHeaderText: [230, 215, 180],
   },
 };
 
 // ── Helpers ──
+
+/** Keywords that indicate a section is about client/business info (already rendered in header) */
+const DUPLICATE_KEYWORDS = ["prepared for", "prepared by", "client info", "business info", "contact info", "service proposal", "proposal for"];
 
 function parseProposalSections(proposal: string): { title: string; content: string }[] {
   const sections: { title: string; content: string }[] = [];
@@ -109,8 +102,12 @@ function parseProposalSections(proposal: string): { title: string; content: stri
   if (currentTitle || currentContent.length > 0) {
     sections.push({ title: currentTitle, content: currentContent.join("\n").trim() });
   }
-  // Filter out empty sections
-  return sections.filter(s => s.content.trim().length > 0);
+  // Filter empty sections AND duplicate client/business info sections
+  return sections.filter(s => {
+    if (s.content.trim().length === 0) return false;
+    const lower = s.title.toLowerCase();
+    return !DUPLICATE_KEYWORDS.some(k => lower.includes(k));
+  });
 }
 
 function setC(doc: jsPDF, c: [number, number, number]) { doc.setTextColor(c[0], c[1], c[2]); }
@@ -123,14 +120,29 @@ function drawDivider(doc: jsPDF, y: number, mx: number, W: number, color: [numbe
   doc.line(mx, y, W - mx, y);
 }
 
+/** Extract a price string like "$600.00" from investment content */
+function extractPrice(content: string): string | null {
+  const match = content.match(/\$[\d,]+(?:\.\d{2})?/);
+  return match ? match[0] : null;
+}
+
+/** Get remaining content after removing the price line */
+function getInvestmentDetails(content: string): string {
+  const lines = content.split("\n");
+  return lines
+    .filter(l => !l.match(/^\$[\d,]+(?:\.\d{2})?$/))
+    .join("\n")
+    .trim();
+}
+
 // ── Main Export ──
 
 export function generateStyledPDF(proposal: string, meta: ProposalMeta): void {
   const tone = meta.tone || "standard";
   const theme = themes[tone] || themes.standard;
   const doc = new jsPDF({ unit: "mm", format: "letter" });
-  const W = doc.internal.pageSize.getWidth();   // 215.9
-  const H = doc.internal.pageSize.getHeight();   // 279.4
+  const W = doc.internal.pageSize.getWidth();
+  const H = doc.internal.pageSize.getHeight();
   const mx = 18;
   const cw = W - mx * 2;
   const today = new Date().toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "numeric" });
@@ -150,51 +162,45 @@ export function generateStyledPDF(proposal: string, meta: ProposalMeta): void {
   let y = 0;
 
   // ════════════════════════════════════════════════
-  // ZONE 1: TOP HEADER
+  // ZONE 1: TOP HEADER (business name + contact)
   // ════════════════════════════════════════════════
 
   if (tone === "luxury" && theme.headerBg) {
     setF(doc, theme.headerBg);
-    doc.rect(0, 0, W, 28, "F");
+    doc.rect(0, 0, W, 26, "F");
 
     doc.setFont("helvetica", "bold");
     doc.setFontSize(18);
     setC(doc, theme.headerText);
-    doc.text(meta.businessName.toUpperCase(), mx, 14);
+    doc.text(meta.businessName.toUpperCase(), mx, 13);
 
     if (meta.licensedInsured) {
-      const badge = "LICENSED & INSURED";
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(6.5);
-      const bw = doc.getTextWidth(badge) + 5;
-      setF(doc, theme.accentColor);
-      doc.roundedRect(mx + doc.getTextWidth(meta.businessName.toUpperCase()) * (18/doc.getFontSize()) + 8, 9.5, bw, 5, 1, 1, "F");
-      // Recalculate position properly
       doc.setFontSize(18);
       const nameW = doc.getTextWidth(meta.businessName.toUpperCase());
-      doc.setFontSize(6.5);
+      const badge = "LICENSED & INSURED";
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(6);
+      const bw = doc.getTextWidth(badge) + 4;
+      const badgeX = mx + nameW + 5;
       setF(doc, theme.accentColor);
-      const badgeX = mx + nameW + 6;
-      doc.roundedRect(badgeX, 9, bw, 5.5, 1, 1, "F");
+      doc.roundedRect(badgeX, 9, bw, 5, 1, 1, "F");
       setC(doc, [10, 10, 14]);
-      doc.text(badge, badgeX + 2.5, 12.5);
+      doc.text(badge, badgeX + 2, 12.2);
     }
 
-    // Right side contact
     doc.setFont("helvetica", "normal");
     doc.setFontSize(7.5);
     setC(doc, theme.accentColor);
-    doc.text(meta.businessPhone, W - mx, 11, { align: "right" });
-    doc.text(meta.businessEmail, W - mx, 15, { align: "right" });
-    doc.text(`Date: ${today}`, W - mx, 19, { align: "right" });
+    doc.text(meta.businessPhone, W - mx, 10, { align: "right" });
+    doc.text(meta.businessEmail, W - mx, 14, { align: "right" });
+    doc.text(`Date: ${today}`, W - mx, 18, { align: "right" });
 
-    y = 32;
+    y = 30;
   } else {
-    // Standard/Friendly/Premium header
     doc.setFont("helvetica", "bold");
     doc.setFontSize(16);
     setC(doc, theme.headerText);
-    doc.text(meta.businessName, mx, 14);
+    doc.text(meta.businessName, mx, 13);
 
     if (meta.licensedInsured) {
       const badge = "Licensed & Insured";
@@ -203,27 +209,26 @@ export function generateStyledPDF(proposal: string, meta: ProposalMeta): void {
       const bw = doc.getTextWidth(badge) + 5;
       setD(doc, theme.accentColor);
       doc.setLineWidth(0.35);
-      doc.roundedRect(mx, 17, bw, 5, 1, 1, "S");
+      doc.roundedRect(mx, 16, bw, 5, 1, 1, "S");
       setC(doc, theme.accentColor);
-      doc.text(badge, mx + 2.5, 20.3);
+      doc.text(badge, mx + 2.5, 19.3);
     }
 
-    // Right side
     doc.setFont("helvetica", "normal");
     doc.setFontSize(7.5);
     setC(doc, theme.lightGray);
-    doc.text(meta.businessPhone, W - mx, 11, { align: "right" });
-    doc.text(meta.businessEmail, W - mx, 15, { align: "right" });
-    doc.text(`Date: ${today}`, W - mx, 19, { align: "right" });
+    doc.text(meta.businessPhone, W - mx, 10, { align: "right" });
+    doc.text(meta.businessEmail, W - mx, 14, { align: "right" });
+    doc.text(`Date: ${today}`, W - mx, 18, { align: "right" });
 
-    y = 26;
+    y = 24;
   }
 
   drawDivider(doc, y, mx, W, theme.dividerColor);
-  y += 5;
+  y += 4;
 
   // ════════════════════════════════════════════════
-  // ZONE 2: CLIENT / BUSINESS COLUMNS
+  // ZONE 2: PREPARED FOR / PREPARED BY (once only)
   // ════════════════════════════════════════════════
 
   const col1X = mx;
@@ -234,14 +239,14 @@ export function generateStyledPDF(proposal: string, meta: ProposalMeta): void {
   setC(doc, theme.lightGray);
   doc.text("PREPARED FOR", col1X, y);
   doc.text("PREPARED BY", col2X, y);
-  y += 4;
+  y += 3.5;
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(9);
   setC(doc, theme.headingColor);
   doc.text(meta.clientName, col1X, y);
   doc.text(meta.businessName, col2X, y);
-  y += 4;
+  y += 3.5;
 
   doc.setFont("helvetica", "normal");
   doc.setFontSize(7.5);
@@ -251,22 +256,22 @@ export function generateStyledPDF(proposal: string, meta: ProposalMeta): void {
   let clientY = y;
   for (const al of addrLines) {
     doc.text(al, col1X, clientY);
-    clientY += 3.2;
+    clientY += 3;
   }
   if (meta.clientEmail) {
     doc.text(meta.clientEmail, col1X, clientY);
-    clientY += 3.2;
+    clientY += 3;
   }
 
   let bizY = y;
   doc.text(meta.businessPhone, col2X, bizY);
-  bizY += 3.2;
+  bizY += 3;
   doc.text(meta.businessEmail, col2X, bizY);
 
-  y = Math.max(clientY, bizY) + 4;
+  y = Math.max(clientY, bizY) + 3;
 
   drawDivider(doc, y, mx, W, theme.dividerColor);
-  y += 5;
+  y += 4;
 
   // ════════════════════════════════════════════════
   // ZONE 3: SCOPE OF WORK (condensed)
@@ -300,7 +305,7 @@ export function generateStyledPDF(proposal: string, meta: ProposalMeta): void {
       for (const wl of wrapped) {
         if (written >= maxLines) break;
         doc.text(wl, mx + (isBullet ? 2 : 0), y);
-        y += 3.2;
+        y += 3;
         written++;
       }
     }
@@ -308,57 +313,74 @@ export function generateStyledPDF(proposal: string, meta: ProposalMeta): void {
   };
 
   if (scopeSection) {
-    writeSection(scopeSection.title, scopeSection.content, 12);
+    writeSection(scopeSection.title, scopeSection.content, 10);
     drawDivider(doc, y, mx, W, theme.dividerColor);
-    y += 5;
+    y += 4;
   }
 
   // ════════════════════════════════════════════════
-  // ZONE 4: INVESTMENT (visually emphasized, HIGH)
+  // ZONE 4: INVESTMENT (visually emphasized)
   // ════════════════════════════════════════════════
 
   if (investmentSection) {
-    // Background block
-    setF(doc, theme.investmentBg);
-    setD(doc, theme.investmentBorder);
-    doc.setLineWidth(0.4);
+    const price = extractPrice(investmentSection.content);
+    const details = getInvestmentDetails(investmentSection.content);
 
-    // Pre-calculate height
+    // Calculate block height
     doc.setFont("helvetica", "normal");
     doc.setFontSize(7.5);
-    const invLines = doc.splitTextToSize(investmentSection.content, cw - 8);
-    const blockH = Math.min(invLines.length, 8) * 3.2 + 10;
+    const detailLines = details ? doc.splitTextToSize(details, cw - 10) : [];
+    const priceLineH = price ? 8 : 0;
+    const detailH = Math.min(detailLines.length, 4) * 3;
+    const blockH = 8 + priceLineH + detailH + 4;
 
-    doc.roundedRect(mx, y - 1, cw, blockH, 1.5, 1.5, "FD");
+    // Draw investment container
+    setF(doc, theme.investmentBg);
+    setD(doc, theme.investmentBorder);
+    doc.setLineWidth(0.5);
+    doc.roundedRect(mx, y - 1, cw, blockH, 2, 2, "FD");
 
+    // Title
     doc.setFont("helvetica", "bold");
     doc.setFontSize(9);
     setC(doc, theme.headingColor);
-    doc.text(investmentSection.title.toUpperCase(), mx + 4, y + 4);
-
+    doc.text(investmentSection.title.toUpperCase(), mx + 5, y + 5);
     y += 8;
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(7.5);
-    setC(doc, theme.bodyColor);
-    for (let i = 0; i < Math.min(invLines.length, 8); i++) {
-      doc.text(invLines[i], mx + 4, y);
-      y += 3.2;
-    }
-    y += 4;
 
-    drawDivider(doc, y, mx, W, theme.dividerColor);
+    // Large price
+    if (price) {
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(18);
+      setC(doc, theme.accentColor);
+      doc.text(price, mx + 5, y + 4);
+      y += priceLineH;
+    }
+
+    // Detail text
+    if (detailLines.length > 0) {
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(7.5);
+      setC(doc, theme.bodyColor);
+      for (let i = 0; i < Math.min(detailLines.length, 4); i++) {
+        doc.text(detailLines[i], mx + 5, y);
+        y += 3;
+      }
+    }
+
     y += 5;
+    drawDivider(doc, y, mx, W, theme.dividerColor);
+    y += 4;
   }
 
   // ════════════════════════════════════════════════
-  // ZONE 5: DETAILS (Timeline, Terms)
+  // ZONE 5: DETAILS (Timeline, Terms, other)
   // ════════════════════════════════════════════════
 
-  // Calculate remaining space for details before footer
-  const footerStart = H - 38;
+  const footerStart = H - 36;
   const remainingForDetails = footerStart - y;
   const detailSections = [timelineSection, termsSection].filter(Boolean);
-  // Also include other sections not yet rendered
+
+  // Collect other sections not already rendered
   const usedTitles = new Set(
     [scopeSection, investmentSection, timelineSection, termsSection, guaranteeSection, nextStepsSection]
       .filter(Boolean).map(s => s!.title)
@@ -367,32 +389,33 @@ export function generateStyledPDF(proposal: string, meta: ProposalMeta): void {
   const allDetailSections = [...detailSections, ...otherSections];
 
   const linesPerDetail = allDetailSections.length > 0
-    ? Math.max(3, Math.floor((remainingForDetails / 3.2) / allDetailSections.length) - 3)
-    : 6;
+    ? Math.max(3, Math.floor((remainingForDetails / 3) / allDetailSections.length) - 3)
+    : 5;
 
   for (const sec of allDetailSections) {
     if (y > footerStart - 8) break;
     if (sec) {
       writeSection(sec.title, sec.content, linesPerDetail);
       drawDivider(doc, y, mx, W, theme.dividerColor);
-      y += 5;
+      y += 4;
     }
   }
 
   // ════════════════════════════════════════════════
-  // ZONE 6: FOOTER (Guarantee, Next Steps, Contact)
+  // ZONE 6: FOOTER (Guarantee + Next Steps + Contact)
   // ════════════════════════════════════════════════
 
   y = footerStart;
   drawDivider(doc, y, mx, W, theme.dividerColor);
   y += 4;
 
+  // Satisfaction Guarantee
   if (meta.satisfactionGuarantee) {
     doc.setFont("helvetica", "bold");
     doc.setFontSize(7.5);
     setC(doc, theme.accentColor);
     doc.text("SATISFACTION GUARANTEE", mx, y);
-    y += 3.2;
+    y += 3;
     doc.setFont("helvetica", "normal");
     doc.setFontSize(7);
     setC(doc, theme.bodyColor);
@@ -400,30 +423,31 @@ export function generateStyledPDF(proposal: string, meta: ProposalMeta): void {
     const gLines = doc.splitTextToSize(gText, cw);
     for (let i = 0; i < Math.min(gLines.length, 2); i++) {
       doc.text(gLines[i], mx, y);
-      y += 3;
+      y += 2.8;
     }
     y += 2;
   }
 
-  if (nextStepsSection) {
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(7.5);
-    setC(doc, theme.accentColor);
-    doc.text("NEXT STEPS", mx, y);
-    y += 3.2;
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(7);
-    setC(doc, theme.bodyColor);
-    const nsLines = doc.splitTextToSize(nextStepsSection.content, cw);
-    for (let i = 0; i < Math.min(nsLines.length, 2); i++) {
-      doc.text(nsLines[i], mx, y);
-      y += 3;
-    }
-    y += 2;
+  // Consolidated Next Steps
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(7.5);
+  setC(doc, theme.accentColor);
+  doc.text("NEXT STEPS", mx, y);
+  y += 3;
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(7);
+  setC(doc, theme.bodyColor);
+
+  const nextStepsText = nextStepsSection?.content
+    || `To accept this proposal, please contact us at ${meta.businessEmail} or ${meta.businessPhone}. We look forward to working with you.`;
+  const nsLines = doc.splitTextToSize(nextStepsText, cw);
+  for (let i = 0; i < Math.min(nsLines.length, 3); i++) {
+    doc.text(nsLines[i], mx, y);
+    y += 2.8;
   }
 
   // Bottom contact bar
-  const bottomY = H - 8;
+  const bottomY = H - 7;
   drawDivider(doc, bottomY - 3, mx, W, theme.dividerColor);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(6.5);
