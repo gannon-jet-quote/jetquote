@@ -3,6 +3,7 @@ import { Copy, Download, Plus, Check } from "lucide-react";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { generateStyledPDF } from "@/lib/pdfTemplates";
+import type { ColorChoice } from "@/components/ColorPaletteSelector";
 
 export interface ProposalMeta {
   tone: string;
@@ -14,6 +15,9 @@ export interface ProposalMeta {
   serviceAddress: string;
   licensedInsured: boolean;
   satisfactionGuarantee: boolean;
+  logoDataUrl?: string | null;
+  primaryColor?: ColorChoice | null;
+  secondaryColor?: ColorChoice | null;
 }
 
 interface Props {

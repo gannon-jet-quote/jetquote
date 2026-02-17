@@ -4,6 +4,8 @@ import { Loader2 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import ConditionalFields from "@/components/ConditionalFields";
 import ProposalOutput, { type ProposalMeta } from "@/components/ProposalOutput";
+import LogoUpload from "@/components/LogoUpload";
+import ColorPaletteSelector, { type ColorChoice } from "@/components/ColorPaletteSelector";
 import { serviceTypes, toneOptions } from "@/config/serviceTypes";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -34,6 +36,9 @@ interface FormData {
   licensedInsured: boolean;
   satisfactionGuarantee: boolean;
   conditionalFields: Record<string, any>;
+  logoDataUrl: string | null;
+  primaryColor: ColorChoice | null;
+  secondaryColor: ColorChoice | null;
 }
 
 const STORAGE_KEY = "jetquote-business-info";
@@ -53,6 +58,9 @@ const initialForm: FormData = {
   licensedInsured: false,
   satisfactionGuarantee: false,
   conditionalFields: {},
+  logoDataUrl: null,
+  primaryColor: null,
+  secondaryColor: null,
 };
 
 const ProposalGenerator = () => {
@@ -151,7 +159,7 @@ const ProposalGenerator = () => {
       <div className="min-h-screen bg-background">
         <Navbar />
         <div className="container mx-auto px-6 pt-24 pb-16">
-          <ProposalOutput
+            <ProposalOutput
             proposal={proposal}
             meta={{
               tone: form.tone,
@@ -163,6 +171,9 @@ const ProposalGenerator = () => {
               serviceAddress: form.serviceAddress,
               licensedInsured: form.licensedInsured,
               satisfactionGuarantee: form.satisfactionGuarantee,
+              logoDataUrl: form.logoDataUrl,
+              primaryColor: form.primaryColor,
+              secondaryColor: form.secondaryColor,
             }}
             onReset={handleReset}
           />
@@ -244,10 +255,24 @@ const ProposalGenerator = () => {
               </div>
             </Section>
 
+            {/* Branding */}
+            <Section title="Branding">
+              <LogoUpload
+                logoDataUrl={form.logoDataUrl}
+                onLogoChange={(v) => updateField("logoDataUrl", v)}
+              />
+            </Section>
+
             {/* Options */}
             <Section title="Proposal Options">
               <Field label="Tone">
-                <Select value={form.tone} onValueChange={(v) => updateField("tone", v)}>
+                <Select value={form.tone} onValueChange={(v) => {
+                  updateField("tone", v);
+                  if (v === "standard") {
+                    updateField("primaryColor", null);
+                    updateField("secondaryColor", null);
+                  }
+                }}>
                   <SelectTrigger className="border-border bg-input text-foreground">
                     <SelectValue />
                   </SelectTrigger>
@@ -260,6 +285,14 @@ const ProposalGenerator = () => {
                   </SelectContent>
                 </Select>
               </Field>
+
+              <ColorPaletteSelector
+                tone={form.tone}
+                primaryColor={form.primaryColor}
+                secondaryColor={form.secondaryColor}
+                onPrimaryChange={(c) => updateField("primaryColor", c)}
+                onSecondaryChange={(c) => updateField("secondaryColor", c)}
+              />
 
               <div className="space-y-3">
                 <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-border bg-input p-3 transition-colors hover:bg-accent">

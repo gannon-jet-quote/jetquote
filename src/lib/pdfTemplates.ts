@@ -12,6 +12,9 @@ interface ProposalMeta {
   serviceAddress: string;
   licensedInsured: boolean;
   satisfactionGuarantee: boolean;
+  logoDataUrl?: string | null;
+  primaryColor?: { name: string; hex: string; rgb: number[] } | null;
+  secondaryColor?: { name: string; hex: string; rgb: number[] } | null;
 }
 
 interface ToneColors {
@@ -217,7 +220,25 @@ function stripNumbering(title: string): string {
 // ── Base Template ──
 
 export function generateStyledPDF(proposal: string, meta: ProposalMeta): void {
-  const style = toneStyles[meta.tone] || toneStyles.standard;
+  const style = JSON.parse(JSON.stringify(toneStyles[meta.tone] || toneStyles.standard)) as ToneStyle;
+
+  // Apply user-selected colors
+  if (meta.tone === "friendly" && meta.primaryColor) {
+    const rgb = meta.primaryColor.rgb as [number, number, number];
+    style.colors.accentColor = rgb;
+    style.colors.headingColor = rgb;
+    style.colors.headerText = rgb;
+    style.colors.dividerColor = [rgb[0] + 80, rgb[1] + 80, rgb[2] + 80].map(v => Math.min(v, 240)) as [number, number, number];
+    style.colors.investmentBorder = rgb;
+  } else if ((meta.tone === "premium" || meta.tone === "luxury") && meta.primaryColor) {
+    style.colors.headerBg = meta.primaryColor.rgb as [number, number, number];
+    if (meta.secondaryColor) {
+      const sec = meta.secondaryColor.rgb as [number, number, number];
+      style.colors.accentColor = sec;
+      style.colors.investmentBorder = sec;
+    }
+  }
+
   const { colors: c, typography: t } = style;
 
   const doc = new jsPDF({ unit: "mm", format: "letter" });
@@ -256,11 +277,29 @@ export function generateStyledPDF(proposal: string, meta: ProposalMeta): void {
     doc.rect(0, 0, W, headerH, "F");
   }
 
+  // Logo rendering
+  let logoW = 0;
+  const logoH = 10;
+  const logoX = mx;
+  const logoYBase = c.headerBg ? (meta.tone === "luxury" ? 10 : 8) : 5;
+  if (meta.logoDataUrl) {
+    try {
+      const fmt = meta.logoDataUrl.includes("image/png") ? "PNG" : meta.logoDataUrl.includes("image/svg") ? "PNG" : "JPEG";
+      doc.addImage(meta.logoDataUrl, fmt, logoX, logoYBase, 0, logoH);
+      // Estimate width from aspect ratio (approx)
+      logoW = logoH * 2.5; // rough estimate, logo will auto-scale
+    } catch {
+      logoW = 0;
+    }
+  }
+
+  const textOffsetX = logoW > 0 ? mx + logoW + 3 : mx;
+
   doc.setFont("helvetica", "bold");
   doc.setFontSize(t.businessNameSize);
   setC(doc, c.headerText);
   const nameY = c.headerBg ? (meta.tone === "luxury" ? 18 : 16) : 15;
-  doc.text(businessNameDisplay, mx, nameY);
+  doc.text(businessNameDisplay, textOffsetX, nameY);
 
   if (meta.licensedInsured) {
     const badge = t.badgeStyle === "filled" ? "LICENSED & INSURED" : "Licensed & Insured";
