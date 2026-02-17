@@ -301,37 +301,43 @@ export function generateStyledPDF(proposal: string, meta: ProposalMeta): void {
   const nameY = c.headerBg ? (meta.tone === "luxury" ? 18 : 16) : 15;
   doc.text(businessNameDisplay, textOffsetX, nameY);
 
+  // Right column: contact info + badge + date
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(t.contactSize);
+  setC(doc, c.headerBg ? c.headerText : c.lightGray);
+  const contactBaseY = c.headerBg ? (meta.tone === "luxury" ? 12 : 10) : 9;
+  let contactY = contactBaseY;
+  doc.text(meta.businessPhone, W - mx, contactY, { align: "right" });
+  contactY += 4;
+  doc.text(meta.businessEmail, W - mx, contactY, { align: "right" });
+  contactY += 4;
+
   if (meta.licensedInsured) {
     const badge = t.badgeStyle === "filled" ? "LICENSED & INSURED" : "Licensed & Insured";
     doc.setFont("helvetica", "bold");
     doc.setFontSize(t.badgeSize);
     const bw = doc.getTextWidth(badge) + 5;
+    const badgeX = W - mx - bw;
 
     if (t.badgeStyle === "filled") {
-      doc.setFontSize(t.businessNameSize);
-      const nameW = doc.getTextWidth(businessNameDisplay);
-      const badgeX = mx + nameW + 5;
       setF(doc, c.accentColor);
-      doc.roundedRect(badgeX, 12, bw, 5.5, 1, 1, "F");
+      doc.roundedRect(badgeX, contactY - 3.5, bw, 5, 1, 1, "F");
       setC(doc, c.headerBg || [255, 255, 255]);
-      doc.setFontSize(t.badgeSize);
-      doc.text(badge, badgeX + 2.5, 15.5);
+      doc.text(badge, badgeX + 2.5, contactY);
     } else {
       setD(doc, c.accentColor);
       doc.setLineWidth(0.35);
-      doc.roundedRect(mx, 18, bw, 5.5, 1, 1, "S");
+      doc.roundedRect(badgeX, contactY - 3.5, bw, 5, 1, 1, "S");
       setC(doc, c.accentColor);
-      doc.text(badge, mx + 2.5, 21.5);
+      doc.text(badge, badgeX + 2.5, contactY);
     }
+    contactY += 5;
   }
 
   doc.setFont("helvetica", "normal");
   doc.setFontSize(t.contactSize);
   setC(doc, c.headerBg ? c.headerText : c.lightGray);
-  const contactBaseY = c.headerBg ? (meta.tone === "luxury" ? 14 : 12) : 11;
-  doc.text(meta.businessPhone, W - mx, contactBaseY, { align: "right" });
-  doc.text(meta.businessEmail, W - mx, contactBaseY + 4.5, { align: "right" });
-  doc.text(`Date: ${today}`, W - mx, contactBaseY + 9, { align: "right" });
+  doc.text(`Date: ${today}`, W - mx, contactY, { align: "right" });
 
   y = c.headerBg ? headerH + 4 : 27;
   drawDivider(doc, y, mx, W, c.dividerColor);
@@ -415,51 +421,51 @@ export function generateStyledPDF(proposal: string, meta: ProposalMeta): void {
     y += 4;
   }
 
-  // ═══ ZONE 4: INVESTMENT ═══
+  // ═══ ZONE 4: INVESTMENT (always rendered) ═══
   if (investmentSection) {
     const price = extractPrice(investmentSection.content);
+    const details = getInvestmentDetails(investmentSection.content);
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(7.5);
+    const detailLines = details ? doc.splitTextToSize(details, cw - 10) : [];
+    const priceLineH = price ? 8 : 0;
+    const detailH = Math.min(detailLines.length, 4) * 3;
+    const blockH = 8 + priceLineH + detailH + 4;
+
+    setF(doc, c.investmentBg);
+    setD(doc, c.investmentBorder);
+    doc.setLineWidth(0.5);
+    doc.roundedRect(mx, y - 1, cw, blockH, 2, 2, "FD");
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(t.sectionHeaderSize);
+    setC(doc, c.headingColor);
+    const investTitle = stripNumbering(investmentSection.title).toUpperCase();
+    doc.text(investTitle, mx + 5, y + 5);
+    y += 8;
+
     if (price) {
-      const details = getInvestmentDetails(investmentSection.content);
-
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(7.5);
-      const detailLines = details ? doc.splitTextToSize(details, cw - 10) : [];
-      const priceLineH = 8;
-      const detailH = Math.min(detailLines.length, 4) * 3;
-      const blockH = 8 + priceLineH + detailH + 4;
-
-      setF(doc, c.investmentBg);
-      setD(doc, c.investmentBorder);
-      doc.setLineWidth(0.5);
-      doc.roundedRect(mx, y - 1, cw, blockH, 2, 2, "FD");
-
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(t.sectionHeaderSize);
-      setC(doc, c.headingColor);
-      const investTitle = stripNumbering(investmentSection.title).toUpperCase();
-      doc.text(investTitle, mx + 5, y + 5);
-      y += 8;
-
       doc.setFont("helvetica", "bold");
       doc.setFontSize(t.priceSize);
       setC(doc, c.accentColor);
       doc.text(price, mx + 5, y + 5);
       y += priceLineH + 2;
-
-      if (detailLines.length > 0) {
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(t.bodySize);
-        setC(doc, c.bodyColor);
-        for (let i = 0; i < Math.min(detailLines.length, 4); i++) {
-          doc.text(detailLines[i], mx + 5, y);
-          y += 3;
-        }
-      }
-
-      y += 5;
-      drawDivider(doc, y, mx, W, c.dividerColor);
-      y += 4;
     }
+
+    if (detailLines.length > 0) {
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(t.bodySize);
+      setC(doc, c.bodyColor);
+      for (let i = 0; i < Math.min(detailLines.length, 4); i++) {
+        doc.text(detailLines[i], mx + 5, y);
+        y += 3;
+      }
+    }
+
+    y += 5;
+    drawDivider(doc, y, mx, W, c.dividerColor);
+    y += 4;
   }
 
   // ═══ ZONE 5: DETAILS (Timeline, Terms — no duplicates) ═══
