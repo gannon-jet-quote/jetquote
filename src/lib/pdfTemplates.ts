@@ -208,6 +208,11 @@ function getInvestmentDetails(content: string): string {
   return content.split("\n").filter(l => !l.match(/^\$[\d,]+(?:\.\d{2})?$/)).join("\n").trim();
 }
 
+/** Strip leading numbering like "1. " or "2) " from section titles */
+function stripNumbering(title: string): string {
+  return title.replace(/^\d+[\.\)]\s*/, "");
+}
+
 // ── Base Template ──
 
 export function generateStyledPDF(proposal: string, meta: ProposalMeta): void {
@@ -231,6 +236,12 @@ export function generateStyledPDF(proposal: string, meta: ProposalMeta): void {
   const termsSection = findSection(["terms", "condition", "payment"]);
   const guaranteeSection = findSection(["guarantee", "warranty", "satisfaction"]);
   const nextStepsSection = findSection(["next", "step", "accept", "proceed", "signature"]);
+
+  // Track all assigned sections to prevent duplicates
+  const assignedSections = new Set(
+    [scopeSection, timelineSection, investmentSection, termsSection, guaranteeSection, nextStepsSection]
+      .filter(Boolean).map(s => s!.title)
+  );
 
   let y = 0;
 
@@ -357,20 +368,20 @@ export function generateStyledPDF(proposal: string, meta: ProposalMeta): void {
 
   // ═══ ZONE 3: SCOPE OF WORK ═══
   if (scopeSection) {
-    writeSection(scopeSection.title, scopeSection.content, 10);
+    writeSection(stripNumbering(scopeSection.title), scopeSection.content, 10);
     drawDivider(doc, y, mx, W, c.dividerColor);
     y += 4;
   }
 
   // ═══ ZONE 4: INVESTMENT ═══
   if (investmentSection) {
-    const price = extractPrice(investmentSection.content);
+    const price = extractPrice(investmentSection.content) || "$0.00";
     const details = getInvestmentDetails(investmentSection.content);
 
     doc.setFont("helvetica", "normal");
     doc.setFontSize(7.5);
     const detailLines = details ? doc.splitTextToSize(details, cw - 10) : [];
-    const priceLineH = price ? 8 : 0;
+    const priceLineH = 8;
     const detailH = Math.min(detailLines.length, 4) * 3;
     const blockH = 8 + priceLineH + detailH + 4;
 
@@ -382,16 +393,15 @@ export function generateStyledPDF(proposal: string, meta: ProposalMeta): void {
     doc.setFont("helvetica", "bold");
     doc.setFontSize(t.sectionHeaderSize);
     setC(doc, c.headingColor);
-    doc.text(investmentSection.title.toUpperCase(), mx + 5, y + 5);
+    const investTitle = stripNumbering(investmentSection.title).toUpperCase();
+    doc.text(investTitle, mx + 5, y + 5);
     y += 8;
 
-    if (price) {
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(t.priceSize);
-      setC(doc, c.accentColor);
-      doc.text(price, mx + 5, y + 5);
-      y += priceLineH + 2;
-    }
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(t.priceSize);
+    setC(doc, c.accentColor);
+    doc.text(price, mx + 5, y + 5);
+    y += priceLineH + 2;
 
     if (detailLines.length > 0) {
       doc.setFont("helvetica", "normal");
@@ -408,13 +418,12 @@ export function generateStyledPDF(proposal: string, meta: ProposalMeta): void {
     y += 4;
   }
 
-  // ═══ ZONE 5: DETAILS (Timeline, Terms, others) ═══
+  // ═══ ZONE 5: DETAILS (Timeline, Terms — no duplicates) ═══
   const footerStart = H - 36;
-  const usedTitles = new Set(
-    [scopeSection, investmentSection, guaranteeSection, nextStepsSection]
-      .filter(Boolean).map(s => s!.title)
-  );
-  const detailSections = [timelineSection, termsSection, ...sections.filter(s => !usedTitles.has(s.title) && s.content.trim())].filter(Boolean);
+
+  // Build ordered detail sections; only include unassigned extras
+  const extraSections = sections.filter(s => !assignedSections.has(s.title) && s.content.trim());
+  const detailSections = [timelineSection, termsSection, ...extraSections].filter(Boolean) as { title: string; content: string }[];
 
   const linesPerDetail = detailSections.length > 0
     ? Math.max(3, Math.floor((footerStart - y) / 3 / detailSections.length) - 3)
@@ -422,11 +431,10 @@ export function generateStyledPDF(proposal: string, meta: ProposalMeta): void {
 
   for (const sec of detailSections) {
     if (y > footerStart - 8) break;
-    if (sec) {
-      writeSection(sec.title, sec.content, linesPerDetail);
-      drawDivider(doc, y, mx, W, c.dividerColor);
-      y += 4;
-    }
+    const displayTitle = stripNumbering(sec.title);
+    writeSection(displayTitle, sec.content, linesPerDetail);
+    drawDivider(doc, y, mx, W, c.dividerColor);
+    y += 4;
   }
 
   // ═══ ZONE 6: FOOTER ═══
