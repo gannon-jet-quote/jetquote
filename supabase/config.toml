@@ -2,3 +2,6 @@ project_id = "ouqzvjlefureybgqtwcf"
 
 [functions.generate-proposal]
 verify_jwt = false
+
+[functions.send-proposal-email]
+verify_jwt = false
