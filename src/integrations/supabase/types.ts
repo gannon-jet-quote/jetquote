@@ -20,11 +20,14 @@ export type Database = {
           client_email: string | null
           client_name: string
           created_at: string
+          email_subject: string | null
           id: string
           job_description: string
           options: Json | null
           pdf_url: string | null
           proposal_text: string
+          sent_at: string | null
+          sent_to: string | null
           service_address: string
           service_type: string
           tone: string
@@ -38,11 +41,14 @@ export type Database = {
           client_email?: string | null
           client_name: string
           created_at?: string
+          email_subject?: string | null
           id?: string
           job_description: string
           options?: Json | null
           pdf_url?: string | null
           proposal_text: string
+          sent_at?: string | null
+          sent_to?: string | null
           service_address: string
           service_type: string
           tone: string
@@ -56,11 +62,14 @@ export type Database = {
           client_email?: string | null
           client_name?: string
           created_at?: string
+          email_subject?: string | null
           id?: string
           job_description?: string
           options?: Json | null
           pdf_url?: string | null
           proposal_text?: string
+          sent_at?: string | null
+          sent_to?: string | null
           service_address?: string
           service_type?: string
           tone?: string
