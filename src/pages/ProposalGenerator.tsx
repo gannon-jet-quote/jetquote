@@ -216,7 +216,40 @@ const ProposalGenerator = () => {
         throw new Error(response.error.message || "Failed to generate proposal");
       }
 
-      setProposal(response.data.proposal);
+      const proposalText = response.data.proposal;
+      setProposal(proposalText);
+
+      // Save to DB if user is logged in
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        const strippedForDb = formattedPrice.replace(/[^0-9.]/g, "");
+        await supabase.from("proposals").insert({
+          user_id: session.user.id,
+          client_name: form.clientName,
+          client_email: form.clientEmail || null,
+          service_type: form.serviceType,
+          service_address: form.serviceAddress,
+          job_description: form.jobDescription,
+          total_price_number: parseFloat(strippedForDb),
+          total_price_formatted: formattedPrice,
+          tone: form.tone,
+          branding: {
+            logoDataUrl: form.logoDataUrl,
+            primaryColor: form.primaryColor,
+            secondaryColor: form.secondaryColor,
+            tertiaryColor: form.tertiaryColor,
+            businessName: form.businessName,
+            businessPhone: form.businessPhone,
+            businessEmail: form.businessEmail,
+          },
+          options: {
+            licensedInsured: form.licensedInsured,
+            satisfactionGuarantee: form.satisfactionGuarantee,
+            conditionalFields: form.conditionalFields,
+          },
+          proposal_text: proposalText,
+        });
+      }
     } catch (e: any) {
       toast({ title: "Error", description: e.message || "Something went wrong", variant: "destructive" });
     } finally {
