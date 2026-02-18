@@ -18,6 +18,7 @@ export interface ProposalMeta {
   logoDataUrl?: string | null;
   primaryColor?: ColorChoice | null;
   secondaryColor?: ColorChoice | null;
+  tertiaryColor?: ColorChoice | null;
 }
 
 interface Props {
