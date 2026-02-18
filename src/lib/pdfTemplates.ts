@@ -203,14 +203,20 @@ function drawDivider(doc: jsPDF, y: number, mx: number, W: number, color: [numbe
   doc.line(mx, y, W - mx, y);
 }
 
-function extractPrice(content: string): string | null {
-  // Match all price patterns and return the last one (most likely the total)
+/** Extract the canonical investment amount from content. Returns the last price match. */
+function extractInvestmentAmount(content: string): string | null {
   const matches = content.match(/\$[\d,]+(?:\.\d{2})?/g);
   return matches ? matches[matches.length - 1] : null;
 }
 
+/** Get supporting text with ALL price occurrences removed to prevent duplication. */
 function getInvestmentDetails(content: string): string {
-  return content.split("\n").filter(l => !l.match(/^\$[\d,]+(?:\.\d{2})?$/)).join("\n").trim();
+  return content
+    .split("\n")
+    .map(l => l.replace(/\$[\d,]+(?:\.\d{2})?/g, "").trim())
+    .filter(l => l.length > 0)
+    .join("\n")
+    .trim();
 }
 
 /** Strip leading numbering like "1. " or "2) " from section titles */
@@ -428,17 +434,25 @@ export function generateStyledPDF(proposal: string, meta: ProposalMeta): void {
     y += 4;
   }
 
-  // ═══ ZONE 4: INVESTMENT (always rendered) ═══
-  if (investmentSection) {
-    const price = extractPrice(investmentSection.content);
-    const details = getInvestmentDetails(investmentSection.content);
+  // ═══ ZONE 4: INVESTMENT (always rendered — single canonical amount) ═══
+  {
+    const investmentAmount = investmentSection
+      ? extractInvestmentAmount(investmentSection.content)
+      : null;
+    const investmentDetails = investmentSection
+      ? getInvestmentDetails(investmentSection.content)
+      : "";
+
+    // Defensive: determine display value — never silently omit
+    const displayAmount = investmentAmount || "Investment amount unavailable";
 
     doc.setFont("helvetica", "normal");
     doc.setFontSize(7.5);
-    const detailLines = details ? doc.splitTextToSize(details, cw - 10) : [];
-    const priceLineH = price ? 8 : 0;
-    const detailH = Math.min(detailLines.length, 4) * 3;
-    const blockH = 8 + priceLineH + detailH + 4;
+    const detailLines = investmentDetails
+      ? doc.splitTextToSize(investmentDetails, cw - 10).slice(0, 4)
+      : [];
+    const detailH = detailLines.length * 3;
+    const blockH = 8 + 8 + detailH + 4;
 
     setF(doc, c.investmentBg);
     setD(doc, c.investmentBorder);
@@ -448,24 +462,22 @@ export function generateStyledPDF(proposal: string, meta: ProposalMeta): void {
     doc.setFont("helvetica", "bold");
     doc.setFontSize(t.sectionHeaderSize);
     setC(doc, c.headingColor);
-    const investTitle = stripNumbering(investmentSection.title).toUpperCase();
-    doc.text(investTitle, mx + 5, y + 5);
+    doc.text("INVESTMENT", mx + 5, y + 5);
     y += 8;
 
-    if (price) {
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(t.priceSize);
-      setC(doc, c.accentColor);
-      doc.text(price, mx + 5, y + 5);
-      y += priceLineH + 2;
-    }
+    // Single canonical price — always rendered
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(t.priceSize);
+    setC(doc, investmentAmount ? c.accentColor : [180, 50, 50]);
+    doc.text(displayAmount, mx + 5, y + 5);
+    y += 10;
 
     if (detailLines.length > 0) {
       doc.setFont("helvetica", "normal");
       doc.setFontSize(t.bodySize);
       setC(doc, c.bodyColor);
-      for (let i = 0; i < Math.min(detailLines.length, 4); i++) {
-        doc.text(detailLines[i], mx + 5, y);
+      for (const line of detailLines) {
+        doc.text(line, mx + 5, y);
         y += 3;
       }
     }
