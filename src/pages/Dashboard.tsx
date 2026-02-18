@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Loader2, Plus, Eye, Download, Copy, Trash2, FileText } from "lucide-react";
+import { Loader2, Plus, Eye, Download, Copy, Trash2, FileText, Files } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -25,6 +25,7 @@ interface Proposal {
   client_email: string | null;
   service_type: string;
   service_address: string;
+  job_description: string;
   total_price_formatted: string;
   tone: string;
   proposal_text: string;
@@ -36,6 +37,7 @@ interface Proposal {
 const Dashboard = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [proposals, setProposals] = useState<Proposal[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -71,6 +73,32 @@ const Dashboard = () => {
   const handleCopy = async (text: string) => {
     await navigator.clipboard.writeText(text);
     toast({ title: "Copied to clipboard" });
+  };
+
+  const handleDuplicate = (p: Proposal) => {
+    navigate("/generate", {
+      state: {
+        duplicate: {
+          clientName: p.client_name,
+          clientEmail: p.client_email || "",
+          serviceType: p.service_type,
+          serviceAddress: p.service_address,
+          jobDescription: (p as any).job_description || "",
+          totalPrice: p.total_price_formatted,
+          tone: p.tone,
+          logoDataUrl: p.branding?.logoDataUrl || null,
+          primaryColor: p.branding?.primaryColor || null,
+          secondaryColor: p.branding?.secondaryColor || null,
+          tertiaryColor: p.branding?.tertiaryColor || null,
+          businessName: p.branding?.businessName || "",
+          businessPhone: p.branding?.businessPhone || "",
+          businessEmail: p.branding?.businessEmail || "",
+          licensedInsured: p.options?.licensedInsured || false,
+          satisfactionGuarantee: p.options?.satisfactionGuarantee || false,
+          conditionalFields: p.options?.conditionalFields || {},
+        },
+      },
+    });
   };
 
   const handleDownloadPDF = (p: Proposal) => {
@@ -168,6 +196,12 @@ const Dashboard = () => {
                         className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-secondary px-3 py-1.5 text-xs font-medium text-secondary-foreground transition-colors hover:bg-accent"
                       >
                         <Copy className="h-3.5 w-3.5" /> Copy
+                      </button>
+                      <button
+                        onClick={() => handleDuplicate(p)}
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-secondary px-3 py-1.5 text-xs font-medium text-secondary-foreground transition-colors hover:bg-accent"
+                      >
+                        <Files className="h-3.5 w-3.5" /> Duplicate
                       </button>
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
