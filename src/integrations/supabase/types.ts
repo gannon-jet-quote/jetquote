@@ -14,7 +14,63 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      proposals: {
+        Row: {
+          branding: Json | null
+          client_email: string | null
+          client_name: string
+          created_at: string
+          id: string
+          job_description: string
+          options: Json | null
+          pdf_url: string | null
+          proposal_text: string
+          service_address: string
+          service_type: string
+          tone: string
+          total_price_formatted: string
+          total_price_number: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          branding?: Json | null
+          client_email?: string | null
+          client_name: string
+          created_at?: string
+          id?: string
+          job_description: string
+          options?: Json | null
+          pdf_url?: string | null
+          proposal_text: string
+          service_address: string
+          service_type: string
+          tone: string
+          total_price_formatted: string
+          total_price_number: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          branding?: Json | null
+          client_email?: string | null
+          client_name?: string
+          created_at?: string
+          id?: string
+          job_description?: string
+          options?: Json | null
+          pdf_url?: string | null
+          proposal_text?: string
+          service_address?: string
+          service_type?: string
+          tone?: string
+          total_price_formatted?: string
+          total_price_number?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
