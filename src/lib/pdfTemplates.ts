@@ -651,3 +651,61 @@ export function generateStyledPDF(proposal: string, meta: ProposalMeta): void {
   const prefix = sanitized || "JetQuote-Proposal";
   doc.save(`${prefix}-${fileDate}.pdf`);
 }
+
+// ── Shared PDF builder (returns jsPDF doc) ──
+function buildPDFDoc(proposal: string, meta: ProposalMeta): jsPDF {
+  // Re-use generateStyledPDF logic but return doc instead of saving
+  const style = JSON.parse(JSON.stringify(toneStyles[meta.tone] || toneStyles.standard)) as ToneStyle;
+
+  if (meta.tone === "friendly" && meta.primaryColor) {
+    const rgb = meta.primaryColor.rgb as [number, number, number];
+    style.colors.accentColor = rgb;
+    style.colors.headingColor = rgb;
+    style.colors.headerText = rgb;
+    style.colors.dividerColor = [rgb[0] + 80, rgb[1] + 80, rgb[2] + 80].map(v => Math.min(v, 240)) as [number, number, number];
+    style.colors.investmentBorder = rgb;
+  } else if ((meta.tone === "premium" || meta.tone === "luxury") && meta.primaryColor) {
+    style.colors.headerBg = meta.primaryColor.rgb as [number, number, number];
+    if (meta.secondaryColor) {
+      const sec = meta.secondaryColor.rgb as [number, number, number];
+      style.colors.accentColor = sec;
+      style.colors.investmentBorder = sec;
+    }
+  }
+
+  // For base64 generation, we create a minimal doc
+  const doc = new jsPDF({ unit: "pt", format: "letter" });
+  // Simple text-based PDF for email attachment
+  const W = doc.internal.pageSize.getWidth();
+  const mx = 50;
+  let y = 50;
+
+  doc.setFontSize(18);
+  doc.text(meta.businessName || "Proposal", mx, y);
+  y += 30;
+
+  doc.setFontSize(10);
+  doc.text(`Prepared for: ${meta.clientName}`, mx, y); y += 15;
+  doc.text(`Service Address: ${meta.serviceAddress}`, mx, y); y += 15;
+  doc.text(`Total: ${meta.totalPrice}`, mx, y); y += 15;
+  doc.text(`Date: ${new Date().toLocaleDateString()}`, mx, y); y += 25;
+
+  doc.setFontSize(11);
+  const lines = doc.splitTextToSize(proposal, W - mx * 2);
+  for (const line of lines) {
+    if (y > doc.internal.pageSize.getHeight() - 50) {
+      doc.addPage();
+      y = 50;
+    }
+    doc.text(line, mx, y);
+    y += 14;
+  }
+
+  return doc;
+}
+
+export function generatePDFBase64(proposal: string, meta: ProposalMeta): string {
+  const doc = buildPDFDoc(proposal, meta);
+  // output as base64 string (without data URI prefix)
+  return doc.output("datauristring").split(",")[1];
+}

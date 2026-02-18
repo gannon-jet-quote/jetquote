@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Loader2, Plus, Eye, Download, Copy, Trash2, FileText, Files } from "lucide-react";
+import { Loader2, Plus, Eye, Download, Copy, Trash2, FileText, Files, Mail } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -18,6 +18,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import SendEmailModal from "@/components/SendEmailModal";
 
 interface Proposal {
   id: string;
@@ -41,6 +42,7 @@ const Dashboard = () => {
   const [proposals, setProposals] = useState<Proposal[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [emailProposal, setEmailProposal] = useState<Proposal | null>(null);
 
   const fetchProposals = async () => {
     const { data, error } = await supabase
@@ -203,6 +205,12 @@ const Dashboard = () => {
                       >
                         <Files className="h-3.5 w-3.5" /> Duplicate
                       </button>
+                      <button
+                        onClick={() => setEmailProposal(p)}
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-secondary px-3 py-1.5 text-xs font-medium text-secondary-foreground transition-colors hover:bg-accent"
+                      >
+                        <Mail className="h-3.5 w-3.5" /> Send
+                      </button>
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
                           <button className="inline-flex items-center gap-1.5 rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-1.5 text-xs font-medium text-destructive transition-colors hover:bg-destructive/20">
@@ -244,6 +252,12 @@ const Dashboard = () => {
           )}
         </motion.div>
       </div>
+      <SendEmailModal
+        proposal={emailProposal}
+        open={!!emailProposal}
+        onOpenChange={(open) => !open && setEmailProposal(null)}
+        onSent={() => fetchProposals()}
+      />
     </div>
   );
 };
