@@ -39,6 +39,7 @@ interface FormData {
   logoDataUrl: string | null;
   primaryColor: ColorChoice | null;
   secondaryColor: ColorChoice | null;
+  tertiaryColor: ColorChoice | null;
 }
 
 const STORAGE_KEY = "jetquote-business-info";
@@ -61,6 +62,7 @@ const initialForm: FormData = {
   logoDataUrl: null,
   primaryColor: null,
   secondaryColor: null,
+  tertiaryColor: null,
 };
 
 const ProposalGenerator = () => {
@@ -174,6 +176,7 @@ const ProposalGenerator = () => {
               logoDataUrl: form.logoDataUrl,
               primaryColor: form.primaryColor,
               secondaryColor: form.secondaryColor,
+              tertiaryColor: form.tertiaryColor,
             }}
             onReset={handleReset}
           />
@@ -271,6 +274,10 @@ const ProposalGenerator = () => {
                   if (v === "standard") {
                     updateField("primaryColor", null);
                     updateField("secondaryColor", null);
+                    updateField("tertiaryColor", null);
+                  }
+                  if (v !== "luxury") {
+                    updateField("tertiaryColor", null);
                   }
                 }}>
                   <SelectTrigger className="border-border bg-input text-foreground">
@@ -290,8 +297,10 @@ const ProposalGenerator = () => {
                 tone={form.tone}
                 primaryColor={form.primaryColor}
                 secondaryColor={form.secondaryColor}
+                tertiaryColor={form.tertiaryColor}
                 onPrimaryChange={(c) => updateField("primaryColor", c)}
                 onSecondaryChange={(c) => updateField("secondaryColor", c)}
+                onTertiaryChange={(c) => updateField("tertiaryColor", c)}
               />
 
               <div className="space-y-3">

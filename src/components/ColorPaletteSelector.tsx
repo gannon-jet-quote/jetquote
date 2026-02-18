@@ -19,8 +19,10 @@ interface Props {
   tone: string;
   primaryColor: ColorChoice | null;
   secondaryColor: ColorChoice | null;
+  tertiaryColor?: ColorChoice | null;
   onPrimaryChange: (color: ColorChoice | null) => void;
   onSecondaryChange: (color: ColorChoice | null) => void;
+  onTertiaryChange?: (color: ColorChoice | null) => void;
 }
 
 function Swatch({
@@ -85,8 +87,10 @@ const ColorPaletteSelector = ({
   tone,
   primaryColor,
   secondaryColor,
+  tertiaryColor,
   onPrimaryChange,
   onSecondaryChange,
+  onTertiaryChange,
 }: Props) => {
   if (tone === "standard") return null;
 
@@ -111,6 +115,15 @@ const ColorPaletteSelector = ({
       </p>
       <PaletteRow label="Primary (Header)" selected={primaryColor} onChange={onPrimaryChange} />
       <PaletteRow label="Secondary (Accents)" selected={secondaryColor} onChange={onSecondaryChange} />
+      {tone === "luxury" && onTertiaryChange && (
+        <div className="space-y-2">
+          <Label className="text-secondary-foreground text-sm">Luxury Header Text Color (Optional)</Label>
+          <p className="text-xs text-muted-foreground">
+            Used for the header text only (e.g., gold accent).
+          </p>
+          <PaletteRow label="Header Text" selected={tertiaryColor ?? null} onChange={onTertiaryChange} />
+        </div>
+      )}
     </div>
   );
 };

@@ -15,6 +15,7 @@ interface ProposalMeta {
   logoDataUrl?: string | null;
   primaryColor?: { name: string; hex: string; rgb: number[] } | null;
   secondaryColor?: { name: string; hex: string; rgb: number[] } | null;
+  tertiaryColor?: { name: string; hex: string; rgb: number[] } | null;
 }
 
 interface ToneColors {
@@ -239,6 +240,11 @@ export function generateStyledPDF(proposal: string, meta: ProposalMeta): void {
     }
   }
 
+  // Luxury tertiary color: override header text color only
+  if (meta.tone === "luxury" && meta.tertiaryColor) {
+    style.colors.headerText = meta.tertiaryColor.rgb as [number, number, number];
+  }
+
   const { colors: c, typography: t } = style;
 
   const doc = new jsPDF({ unit: "mm", format: "letter" });
@@ -301,7 +307,7 @@ export function generateStyledPDF(proposal: string, meta: ProposalMeta): void {
   const nameY = c.headerBg ? (meta.tone === "luxury" ? 18 : 16) : 15;
   doc.text(businessNameDisplay, textOffsetX, nameY);
 
-  // Right column: contact info + badge + date
+  // Right column: contact info — Phone, Email, Date, then Licensed & Insured badge
   doc.setFont("helvetica", "normal");
   doc.setFontSize(t.contactSize);
   setC(doc, c.headerBg ? c.headerText : c.lightGray);
@@ -310,6 +316,12 @@ export function generateStyledPDF(proposal: string, meta: ProposalMeta): void {
   doc.text(meta.businessPhone, W - mx, contactY, { align: "right" });
   contactY += 4;
   doc.text(meta.businessEmail, W - mx, contactY, { align: "right" });
+  contactY += 4;
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(t.contactSize);
+  setC(doc, c.headerBg ? c.headerText : c.lightGray);
+  doc.text(`Date: ${today}`, W - mx, contactY, { align: "right" });
   contactY += 4;
 
   if (meta.licensedInsured) {
@@ -333,11 +345,6 @@ export function generateStyledPDF(proposal: string, meta: ProposalMeta): void {
     }
     contactY += 5;
   }
-
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(t.contactSize);
-  setC(doc, c.headerBg ? c.headerText : c.lightGray);
-  doc.text(`Date: ${today}`, W - mx, contactY, { align: "right" });
 
   y = c.headerBg ? headerH + 4 : 27;
   drawDivider(doc, y, mx, W, c.dividerColor);
