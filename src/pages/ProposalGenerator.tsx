@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Loader2 } from "lucide-react";
 import Navbar from "@/components/Navbar";
@@ -68,6 +69,8 @@ const initialForm: FormData = {
 };
 
 const ProposalGenerator = () => {
+  const location = useLocation();
+  const duplicateData = (location.state as any)?.duplicate || null;
   const [form, setForm] = useState<FormData>(initialForm);
   const [loading, setLoading] = useState(false);
   const [proposal, setProposal] = useState<string | null>(null);
@@ -109,6 +112,32 @@ const ProposalGenerator = () => {
       }
     } catch {}
   }, []);
+
+  // Prefill from duplicate data
+  useEffect(() => {
+    if (duplicateData) {
+      setForm((prev) => ({
+        ...prev,
+        clientName: duplicateData.clientName || "",
+        clientEmail: duplicateData.clientEmail || "",
+        serviceAddress: duplicateData.serviceAddress || "",
+        serviceType: duplicateData.serviceType || "",
+        jobDescription: duplicateData.jobDescription || "",
+        totalPrice: duplicateData.totalPrice || "",
+        tone: duplicateData.tone || "standard",
+        licensedInsured: duplicateData.licensedInsured ?? false,
+        satisfactionGuarantee: duplicateData.satisfactionGuarantee ?? false,
+        conditionalFields: duplicateData.conditionalFields || {},
+        logoDataUrl: duplicateData.logoDataUrl ?? prev.logoDataUrl,
+        primaryColor: duplicateData.primaryColor ?? prev.primaryColor,
+        secondaryColor: duplicateData.secondaryColor ?? prev.secondaryColor,
+        tertiaryColor: duplicateData.tertiaryColor ?? prev.tertiaryColor,
+        businessName: duplicateData.businessName || prev.businessName,
+        businessPhone: duplicateData.businessPhone || prev.businessPhone,
+        businessEmail: duplicateData.businessEmail || prev.businessEmail,
+      }));
+    }
+  }, [duplicateData]);
 
   // Save business info
   useEffect(() => {
