@@ -160,6 +160,19 @@ const ProposalGenerator = () => {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
+  const formatCurrency = (value: string): string => {
+    const stripped = value.replace(/[^0-9.]/g, "");
+    const num = parseFloat(stripped);
+    if (isNaN(num)) return value;
+    return `$${num.toFixed(2)}`;
+  };
+
+  const handlePriceBlur = () => {
+    if (form.totalPrice.trim()) {
+      updateField("totalPrice", formatCurrency(form.totalPrice));
+    }
+  };
+
   const updateConditional = (name: string, value: any) => {
     setForm((prev) => ({
       ...prev,
@@ -182,6 +195,16 @@ const ProposalGenerator = () => {
         return;
       }
     }
+
+    // Validate and format price
+    const strippedPrice = form.totalPrice.replace(/[^0-9.]/g, "");
+    const numPrice = parseFloat(strippedPrice);
+    if (isNaN(numPrice) || numPrice <= 0) {
+      toast({ title: "Invalid price", description: "Please enter a valid total price.", variant: "destructive" });
+      return;
+    }
+    const formattedPrice = `$${numPrice.toFixed(2)}`;
+    setForm((prev) => ({ ...prev, totalPrice: formattedPrice }));
 
     setLoading(true);
     try {
@@ -298,7 +321,7 @@ const ProposalGenerator = () => {
               </Field>
               <div className="grid gap-4 sm:grid-cols-2">
                 <Field label="Total Price *">
-                  <Input value={form.totalPrice} onChange={(e) => updateField("totalPrice", e.target.value)} placeholder="$500" className="border-border bg-input text-foreground placeholder:text-muted-foreground" />
+                  <Input value={form.totalPrice} onChange={(e) => updateField("totalPrice", e.target.value)} onBlur={handlePriceBlur} placeholder="$500.00" className="border-border bg-input text-foreground placeholder:text-muted-foreground" />
                 </Field>
                 <Field label="Timeline / Availability *">
                   <Input value={form.timeline} onChange={(e) => updateField("timeline", e.target.value)} placeholder="Available next week" className="border-border bg-input text-foreground placeholder:text-muted-foreground" />
