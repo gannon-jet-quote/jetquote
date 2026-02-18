@@ -43,6 +43,8 @@ interface FormData {
 }
 
 const STORAGE_KEY = "jetquote-business-info";
+const BRANDING_KEY = "jetquote-branding";
+const OPTIONS_KEY = "jetquote-options";
 
 const initialForm: FormData = {
   clientName: "",
@@ -71,35 +73,88 @@ const ProposalGenerator = () => {
   const [proposal, setProposal] = useState<string | null>(null);
   const { toast } = useToast();
 
-  // Load saved business info
+  // Load all saved settings on mount
   useEffect(() => {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
+      const savedBiz = localStorage.getItem(STORAGE_KEY);
+      if (savedBiz) {
+        const p = JSON.parse(savedBiz);
         setForm((prev) => ({
           ...prev,
-          businessName: parsed.businessName || "",
-          businessPhone: parsed.businessPhone || "",
-          businessEmail: parsed.businessEmail || "",
+          businessName: p.businessName || "",
+          businessPhone: p.businessPhone || "",
+          businessEmail: p.businessEmail || "",
+        }));
+      }
+      const savedBrand = localStorage.getItem(BRANDING_KEY);
+      if (savedBrand) {
+        const b = JSON.parse(savedBrand);
+        setForm((prev) => ({
+          ...prev,
+          logoDataUrl: b.logoDataUrl ?? null,
+          primaryColor: b.primaryColor ?? null,
+          secondaryColor: b.secondaryColor ?? null,
+          tertiaryColor: b.tertiaryColor ?? null,
+        }));
+      }
+      const savedOpts = localStorage.getItem(OPTIONS_KEY);
+      if (savedOpts) {
+        const o = JSON.parse(savedOpts);
+        setForm((prev) => ({
+          ...prev,
+          tone: o.tone || "standard",
+          licensedInsured: o.licensedInsured ?? false,
+          satisfactionGuarantee: o.satisfactionGuarantee ?? false,
         }));
       }
     } catch {}
   }, []);
 
-  // Save business info on change
+  // Save business info
   useEffect(() => {
     if (form.businessName || form.businessPhone || form.businessEmail) {
-      localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify({
-          businessName: form.businessName,
-          businessPhone: form.businessPhone,
-          businessEmail: form.businessEmail,
-        })
-      );
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        businessName: form.businessName,
+        businessPhone: form.businessPhone,
+        businessEmail: form.businessEmail,
+      }));
     }
   }, [form.businessName, form.businessPhone, form.businessEmail]);
+
+  // Save branding
+  useEffect(() => {
+    localStorage.setItem(BRANDING_KEY, JSON.stringify({
+      logoDataUrl: form.logoDataUrl,
+      primaryColor: form.primaryColor,
+      secondaryColor: form.secondaryColor,
+      tertiaryColor: form.tertiaryColor,
+    }));
+  }, [form.logoDataUrl, form.primaryColor, form.secondaryColor, form.tertiaryColor]);
+
+  // Save options
+  useEffect(() => {
+    localStorage.setItem(OPTIONS_KEY, JSON.stringify({
+      tone: form.tone,
+      licensedInsured: form.licensedInsured,
+      satisfactionGuarantee: form.satisfactionGuarantee,
+    }));
+  }, [form.tone, form.licensedInsured, form.satisfactionGuarantee]);
+
+  const handleResetBrandingOptions = () => {
+    localStorage.removeItem(BRANDING_KEY);
+    localStorage.removeItem(OPTIONS_KEY);
+    setForm((prev) => ({
+      ...prev,
+      tone: "standard",
+      licensedInsured: false,
+      satisfactionGuarantee: false,
+      logoDataUrl: null,
+      primaryColor: null,
+      secondaryColor: null,
+      tertiaryColor: null,
+    }));
+    toast({ title: "Reset", description: "Branding & options cleared" });
+  };
 
   const updateField = (name: keyof FormData, value: any) => {
     setForm((prev) => ({ ...prev, [name]: value }));
@@ -153,6 +208,13 @@ const ProposalGenerator = () => {
       businessName: prev.businessName,
       businessPhone: prev.businessPhone,
       businessEmail: prev.businessEmail,
+      tone: prev.tone,
+      licensedInsured: prev.licensedInsured,
+      satisfactionGuarantee: prev.satisfactionGuarantee,
+      logoDataUrl: prev.logoDataUrl,
+      primaryColor: prev.primaryColor,
+      secondaryColor: prev.secondaryColor,
+      tertiaryColor: prev.tertiaryColor,
     }));
   };
 
@@ -314,6 +376,13 @@ const ProposalGenerator = () => {
                   <span className="text-sm text-secondary-foreground">Include Satisfaction Guarantee</span>
                 </label>
               </div>
+              <button
+                type="button"
+                onClick={handleResetBrandingOptions}
+                className="mt-2 text-xs text-muted-foreground underline underline-offset-2 transition-colors hover:text-foreground"
+              >
+                Reset Branding &amp; Options
+              </button>
             </Section>
 
             {/* Submit */}
