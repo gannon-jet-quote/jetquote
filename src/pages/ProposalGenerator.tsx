@@ -173,6 +173,7 @@ const ProposalGenerator = () => {
               serviceAddress: form.serviceAddress,
               licensedInsured: form.licensedInsured,
               satisfactionGuarantee: form.satisfactionGuarantee,
+              totalPrice: form.totalPrice,
               logoDataUrl: form.logoDataUrl,
               primaryColor: form.primaryColor,
               secondaryColor: form.secondaryColor,

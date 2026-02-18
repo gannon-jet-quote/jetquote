@@ -15,6 +15,7 @@ export interface ProposalMeta {
   serviceAddress: string;
   licensedInsured: boolean;
   satisfactionGuarantee: boolean;
+  totalPrice: string;
   logoDataUrl?: string | null;
   primaryColor?: ColorChoice | null;
   secondaryColor?: ColorChoice | null;
