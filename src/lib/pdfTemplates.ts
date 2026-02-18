@@ -550,5 +550,13 @@ export function generateStyledPDF(proposal: string, meta: ProposalMeta): void {
   doc.text(`${meta.businessPhone}  |  ${meta.businessEmail}`, W / 2, bottomY, { align: "center" });
   doc.text("Page 1", W - mx, bottomY, { align: "right" });
 
-  doc.save("JetQuote-Proposal.pdf");
+  const fileDate = new Date().toISOString().slice(0, 10);
+  const sanitized = meta.clientName
+    ?.trim()
+    .replace(/\s+/g, "-")
+    .replace(/[^a-zA-Z-]/g, "")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+  const prefix = sanitized || "JetQuote-Proposal";
+  doc.save(`${prefix}-${fileDate}.pdf`);
 }
