@@ -12,6 +12,7 @@ interface ProposalMeta {
   serviceAddress: string;
   licensedInsured: boolean;
   satisfactionGuarantee: boolean;
+  totalPrice: string;
   logoDataUrl?: string | null;
   primaryColor?: { name: string; hex: string; rgb: number[] } | null;
   secondaryColor?: { name: string; hex: string; rgb: number[] } | null;
@@ -436,15 +437,16 @@ export function generateStyledPDF(proposal: string, meta: ProposalMeta): void {
 
   // ═══ ZONE 4: INVESTMENT (always rendered — single canonical amount) ═══
   {
-    const investmentAmount = investmentSection
-      ? extractInvestmentAmount(investmentSection.content)
-      : null;
+    // Canonical price from user input — single source of truth
+    const canonicalPrice = meta.totalPrice?.trim();
+    const displayAmount = canonicalPrice
+      ? (canonicalPrice.startsWith("$") ? canonicalPrice : `$${canonicalPrice}`)
+      : "Investment amount unavailable";
+    const hasPrice = !!canonicalPrice;
+
     const investmentDetails = investmentSection
       ? getInvestmentDetails(investmentSection.content)
       : "";
-
-    // Defensive: determine display value — never silently omit
-    const displayAmount = investmentAmount || "Investment amount unavailable";
 
     doc.setFont("helvetica", "normal");
     doc.setFontSize(7.5);
@@ -468,7 +470,7 @@ export function generateStyledPDF(proposal: string, meta: ProposalMeta): void {
     // Single canonical price — always rendered
     doc.setFont("helvetica", "bold");
     doc.setFontSize(t.priceSize);
-    setC(doc, investmentAmount ? c.accentColor : [180, 50, 50]);
+    setC(doc, hasPrice ? c.accentColor : [180, 50, 50]);
     doc.text(displayAmount, mx + 5, y + 5);
     y += 10;
 
