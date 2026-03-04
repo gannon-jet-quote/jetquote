@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Loader2, Send, CheckCircle, XCircle } from "lucide-react";
 import {
   Dialog,
@@ -66,8 +66,12 @@ const SendEmailModal = ({ proposal, open, onOpenChange, onSent, userName }: Prop
     setErrorMsg("");
   };
 
+  // Prefill fields whenever the modal opens or proposal changes
+  useEffect(() => {
+    if (open && p) resetFields();
+  }, [open, p?.id]);
+
   const handleOpenChange = (isOpen: boolean) => {
-    if (isOpen) resetFields();
     onOpenChange(isOpen);
   };
 
