@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      profiles: {
+        Row: {
+          business_name: string
+          business_phone: string | null
+          created_at: string
+          first_name: string
+          full_name: string | null
+          last_name: string
+          title: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          business_name?: string
+          business_phone?: string | null
+          created_at?: string
+          first_name?: string
+          full_name?: string | null
+          last_name?: string
+          title?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          business_name?: string
+          business_phone?: string | null
+          created_at?: string
+          first_name?: string
+          full_name?: string | null
+          last_name?: string
+          title?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       proposals: {
         Row: {
           branding: Json | null

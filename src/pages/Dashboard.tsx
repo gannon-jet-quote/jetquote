@@ -36,7 +36,7 @@ interface Proposal {
 }
 
 const Dashboard = () => {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [proposals, setProposals] = useState<Proposal[]>([]);
@@ -257,7 +257,7 @@ const Dashboard = () => {
         open={!!emailProposal}
         onOpenChange={(open) => !open && setEmailProposal(null)}
         onSent={() => fetchProposals()}
-        userName={user?.user_metadata?.full_name || user?.email?.split("@")[0]}
+        userName={profile?.full_name || profile?.business_name}
       />
     </div>
   );

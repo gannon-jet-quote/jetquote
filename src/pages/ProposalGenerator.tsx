@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 import { useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Loader2 } from "lucide-react";
@@ -70,11 +71,23 @@ const initialForm: FormData = {
 
 const ProposalGenerator = () => {
   const location = useLocation();
+  const { profile } = useAuth();
   const duplicateData = (location.state as any)?.duplicate || null;
   const [form, setForm] = useState<FormData>(initialForm);
   const [loading, setLoading] = useState(false);
   const [proposal, setProposal] = useState<string | null>(null);
   const { toast } = useToast();
+
+  // Seed business fields from profile on mount
+  useEffect(() => {
+    if (profile) {
+      setForm((prev) => ({
+        ...prev,
+        businessName: prev.businessName || profile.business_name || "",
+        businessPhone: prev.businessPhone || profile.business_phone || "",
+      }));
+    }
+  }, [profile]);
 
   // Load all saved settings on mount
   useEffect(() => {
