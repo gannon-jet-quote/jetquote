@@ -9,6 +9,11 @@ import { useToast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
 
 const Signup = () => {
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [businessName, setBusinessName] = useState("");
+  const [title, setTitle] = useState("");
+  const [businessPhone, setBusinessPhone] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -19,8 +24,8 @@ const Signup = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) {
-      toast({ title: "Missing fields", description: "Please fill in all fields.", variant: "destructive" });
+    if (!firstName.trim() || !lastName.trim() || !businessName.trim() || !email || !password) {
+      toast({ title: "Missing fields", description: "Please fill in all required fields.", variant: "destructive" });
       return;
     }
     if (password !== confirm) {
@@ -32,7 +37,13 @@ const Signup = () => {
       return;
     }
     setLoading(true);
-    const { error } = await signUp(email, password);
+    const { error } = await signUp(email, password, {
+      first_name: firstName.trim(),
+      last_name: lastName.trim(),
+      business_name: businessName.trim(),
+      title: title.trim(),
+      business_phone: businessPhone.trim(),
+    });
     setLoading(false);
     if (error) {
       toast({ title: "Signup failed", description: error.message, variant: "destructive" });
@@ -41,6 +52,8 @@ const Signup = () => {
       navigate("/login");
     }
   };
+
+  const fieldClass = "border-border bg-input text-foreground placeholder:text-muted-foreground";
 
   return (
     <div className="min-h-screen bg-background">
@@ -51,17 +64,43 @@ const Signup = () => {
           <p className="mb-8 text-center text-muted-foreground">Start generating professional proposals</p>
 
           <form onSubmit={handleSubmit} className="space-y-5 rounded-xl border border-border bg-card p-6">
-            <div className="space-y-2">
-              <Label className="text-secondary-foreground">Email</Label>
-              <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" className="border-border bg-input text-foreground placeholder:text-muted-foreground" />
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label className="text-secondary-foreground">First Name *</Label>
+                <Input value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="John" className={fieldClass} />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-secondary-foreground">Last Name *</Label>
+                <Input value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="Smith" className={fieldClass} />
+              </div>
             </div>
             <div className="space-y-2">
-              <Label className="text-secondary-foreground">Password</Label>
-              <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="border-border bg-input text-foreground placeholder:text-muted-foreground" />
+              <Label className="text-secondary-foreground">Business Name *</Label>
+              <Input value={businessName} onChange={(e) => setBusinessName(e.target.value)} placeholder="Your Company LLC" className={fieldClass} />
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label className="text-secondary-foreground">Title</Label>
+                <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Owner" className={fieldClass} />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-secondary-foreground">Business Phone</Label>
+                <Input value={businessPhone} onChange={(e) => setBusinessPhone(e.target.value)} placeholder="(555) 123-4567" className={fieldClass} />
+              </div>
             </div>
             <div className="space-y-2">
-              <Label className="text-secondary-foreground">Confirm Password</Label>
-              <Input type="password" value={confirm} onChange={(e) => setConfirm(e.target.value)} placeholder="••••••••" className="border-border bg-input text-foreground placeholder:text-muted-foreground" />
+              <Label className="text-secondary-foreground">Email *</Label>
+              <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" className={fieldClass} />
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label className="text-secondary-foreground">Password *</Label>
+                <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className={fieldClass} />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-secondary-foreground">Confirm Password *</Label>
+                <Input type="password" value={confirm} onChange={(e) => setConfirm(e.target.value)} placeholder="••••••••" className={fieldClass} />
+              </div>
             </div>
             <button type="submit" disabled={loading} className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3 text-sm font-semibold text-primary-foreground transition-all hover:brightness-110 disabled:opacity-50 glow-sm">
               {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserPlus className="h-4 w-4" />}

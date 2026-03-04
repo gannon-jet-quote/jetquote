@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { LogOut, LayoutDashboard } from "lucide-react";
+import { LogOut, LayoutDashboard, Settings } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import logo from "@/assets/jetquote-logo.png";
 
@@ -26,6 +26,12 @@ const Navbar = () => {
                 className="rounded-lg bg-primary px-5 py-2 text-sm font-medium text-primary-foreground transition-all hover:brightness-110 glow-sm"
               >
                 Generate Proposal
+              </Link>
+              <Link
+                to="/settings"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+              >
+                <Settings className="h-4 w-4" />
               </Link>
               <button
                 onClick={signOut}
