@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      branding_settings: {
+        Row: {
+          accent_color: Json | null
+          created_at: string
+          default_tone: string
+          id: string
+          logo_url: string | null
+          onboarding_completed: boolean
+          primary_color: Json | null
+          secondary_color: Json | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          accent_color?: Json | null
+          created_at?: string
+          default_tone?: string
+          id?: string
+          logo_url?: string | null
+          onboarding_completed?: boolean
+          primary_color?: Json | null
+          secondary_color?: Json | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          accent_color?: Json | null
+          created_at?: string
+          default_tone?: string
+          id?: string
+          logo_url?: string | null
+          onboarding_completed?: boolean
+          primary_color?: Json | null
+          secondary_color?: Json | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           business_name: string

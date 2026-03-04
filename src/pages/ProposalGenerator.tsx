@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useBrandingSettings } from "@/hooks/useBrandingSettings";
 import { useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Loader2 } from "lucide-react";
@@ -72,10 +73,12 @@ const initialForm: FormData = {
 const ProposalGenerator = () => {
   const location = useLocation();
   const { profile } = useAuth();
+  const { settings: brandingDefaults } = useBrandingSettings();
   const duplicateData = (location.state as any)?.duplicate || null;
   const [form, setForm] = useState<FormData>(initialForm);
   const [loading, setLoading] = useState(false);
   const [proposal, setProposal] = useState<string | null>(null);
+  const [brandingApplied, setBrandingApplied] = useState(false);
   const { toast } = useToast();
 
   // Seed business fields from profile on mount
@@ -88,6 +91,21 @@ const ProposalGenerator = () => {
       }));
     }
   }, [profile]);
+
+  // Apply saved branding defaults once
+  useEffect(() => {
+    if (brandingDefaults && !brandingApplied && !duplicateData) {
+      setBrandingApplied(true);
+      setForm((prev) => ({
+        ...prev,
+        tone: prev.tone === "standard" ? brandingDefaults.default_tone : prev.tone,
+        primaryColor: prev.primaryColor ?? brandingDefaults.primary_color,
+        secondaryColor: prev.secondaryColor ?? brandingDefaults.secondary_color,
+        tertiaryColor: prev.tertiaryColor ?? brandingDefaults.accent_color,
+        logoDataUrl: prev.logoDataUrl ?? brandingDefaults.logo_url,
+      }));
+    }
+  }, [brandingDefaults, brandingApplied, duplicateData]);
 
   // Load all saved settings on mount
   useEffect(() => {

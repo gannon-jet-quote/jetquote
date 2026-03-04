@@ -1,11 +1,19 @@
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useBrandingSettings } from "@/hooks/useBrandingSettings";
 import { Loader2 } from "lucide-react";
 
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, loading } = useAuth();
+interface Props {
+  children: React.ReactNode;
+  skipOnboardingCheck?: boolean;
+}
 
-  if (loading) {
+const ProtectedRoute = ({ children, skipOnboardingCheck }: Props) => {
+  const { user, loading } = useAuth();
+  const { settings, loading: brandingLoading } = useBrandingSettings();
+  const location = useLocation();
+
+  if (loading || brandingLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -15,6 +23,15 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
   if (!user) {
     return <Navigate to="/login" replace />;
+  }
+
+  // Redirect new users to onboarding (only if not already there)
+  if (
+    !skipOnboardingCheck &&
+    !settings?.onboarding_completed &&
+    location.pathname !== "/onboarding"
+  ) {
+    return <Navigate to="/onboarding" replace />;
   }
 
   return <>{children}</>;
