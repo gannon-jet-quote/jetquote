@@ -109,6 +109,7 @@ Deno.serve(async (req) => {
         sent_at: new Date().toISOString(),
         sent_to: to,
         email_subject: subject,
+        email_body: body,
       })
       .eq("id", proposalId);
 

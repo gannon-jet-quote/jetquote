@@ -30,13 +30,25 @@ interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSent: () => void;
+  userName?: string;
 }
 
-const SendEmailModal = ({ proposal, open, onOpenChange, onSent }: Props) => {
+function buildSubject(clientName: string, businessName?: string): string {
+  const name = clientName?.trim() || "Client";
+  if (businessName?.trim()) {
+    return `${name} ${businessName.trim()} Job Proposal`;
+  }
+  return `${name} Job Proposal`;
+}
+
+function buildBody(clientName: string, userName?: string): string {
+  const senderName = userName?.trim() || "Our Team";
+  return `Hello ${clientName?.trim() || "there"},\n\nAs requested, here is your job proposal. Let me know if you have any questions.\n\nHave a great day,\n${senderName}`;
+}
+
+const SendEmailModal = ({ proposal, open, onOpenChange, onSent, userName }: Props) => {
   const p = proposal;
-  const businessName = p?.branding?.businessName || "Our Team";
-  const businessPhone = p?.branding?.businessPhone || "";
-  const businessEmail = p?.branding?.businessEmail || "";
+  const businessName = p?.branding?.businessName || "";
 
   const [to, setTo] = useState("");
   const [subject, setSubject] = useState("");
@@ -44,14 +56,12 @@ const SendEmailModal = ({ proposal, open, onOpenChange, onSent }: Props) => {
   const [status, setStatus] = useState<"idle" | "sending" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
 
-  // Reset fields when proposal changes
   const resetFields = () => {
     if (!p) return;
     setTo(p.client_email || "");
-    setSubject(`Proposal from ${businessName}`);
-    setBody(
-      `Hi ${p.client_name},\n\nAttached is your proposal for ${p.service_type} at ${p.service_address}.\n\nIf everything looks good, reply to this email and we'll get you scheduled.\n\nThanks,\n${businessName}\n${businessPhone}\n${businessEmail}`
-    );
+    setSubject(buildSubject(p.client_name, businessName));
+    const fallbackName = businessName || undefined;
+    setBody(buildBody(p.client_name, userName || fallbackName));
     setStatus("idle");
     setErrorMsg("");
   };
