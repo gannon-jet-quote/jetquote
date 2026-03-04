@@ -20,6 +20,7 @@ export type Database = {
           client_email: string | null
           client_name: string
           created_at: string
+          email_body: string | null
           email_subject: string | null
           id: string
           job_description: string
@@ -41,6 +42,7 @@ export type Database = {
           client_email?: string | null
           client_name: string
           created_at?: string
+          email_body?: string | null
           email_subject?: string | null
           id?: string
           job_description: string
@@ -62,6 +64,7 @@ export type Database = {
           client_email?: string | null
           client_name?: string
           created_at?: string
+          email_body?: string | null
           email_subject?: string | null
           id?: string
           job_description?: string

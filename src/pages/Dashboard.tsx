@@ -257,6 +257,7 @@ const Dashboard = () => {
         open={!!emailProposal}
         onOpenChange={(open) => !open && setEmailProposal(null)}
         onSent={() => fetchProposals()}
+        userName={user?.user_metadata?.full_name || user?.email?.split("@")[0]}
       />
     </div>
   );
