@@ -80,8 +80,9 @@ const Signup = () => {
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label className="text-secondary-foreground">Title</Label>
+                <Label className="text-secondary-foreground">Job Title</Label>
                 <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Owner" className={fieldClass} />
+                <p className="text-xs text-muted-foreground">Example: Owner, Manager, Technician, Operations Director</p>
               </div>
               <div className="space-y-2">
                 <Label className="text-secondary-foreground">Business Phone</Label>
