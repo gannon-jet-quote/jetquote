@@ -72,77 +72,54 @@ const initialForm: FormData = {
 
 const ProposalGenerator = () => {
   const location = useLocation();
-  const { profile } = useAuth();
-  const { settings: brandingDefaults } = useBrandingSettings();
+  const { user, profile } = useAuth();
+  const { settings: brandingDefaults, loading: brandingLoading } = useBrandingSettings();
   const duplicateData = (location.state as any)?.duplicate || null;
   const [form, setForm] = useState<FormData>(initialForm);
   const [loading, setLoading] = useState(false);
   const [proposal, setProposal] = useState<string | null>(null);
-  const [brandingApplied, setBrandingApplied] = useState(false);
+  const [defaultsApplied, setDefaultsApplied] = useState(false);
   const { toast } = useToast();
 
-  // Seed business fields from profile on mount
+  // Apply all saved defaults once both profile and branding have loaded
+  // Priority: duplicate data > DB defaults > localStorage > initialForm
   useEffect(() => {
-    if (profile) {
-      setForm((prev) => ({
-        ...prev,
-        businessName: prev.businessName || profile.business_name || "",
-        businessPhone: prev.businessPhone || profile.business_phone || "",
-      }));
-    }
-  }, [profile]);
+    if (defaultsApplied || duplicateData) return;
+    // Wait for both sources to finish loading
+    if (brandingLoading) return;
 
-  // Apply saved branding defaults once
-  useEffect(() => {
-    if (brandingDefaults && !brandingApplied && !duplicateData) {
-      setBrandingApplied(true);
-      setForm((prev) => ({
-        ...prev,
-        tone: prev.tone === "standard" ? brandingDefaults.default_tone : prev.tone,
-        primaryColor: prev.primaryColor ?? brandingDefaults.primary_color,
-        secondaryColor: prev.secondaryColor ?? brandingDefaults.secondary_color,
-        tertiaryColor: prev.tertiaryColor ?? brandingDefaults.accent_color,
-        logoDataUrl: prev.logoDataUrl ?? brandingDefaults.logo_url,
-      }));
-    }
-  }, [brandingDefaults, brandingApplied, duplicateData]);
+    setDefaultsApplied(true);
 
-  // Load all saved settings on mount
-  useEffect(() => {
+    // Start from localStorage as base layer
+    let localBiz: any = {};
+    let localBrand: any = {};
+    let localOpts: any = {};
     try {
       const savedBiz = localStorage.getItem(STORAGE_KEY);
-      if (savedBiz) {
-        const p = JSON.parse(savedBiz);
-        setForm((prev) => ({
-          ...prev,
-          businessName: p.businessName || "",
-          businessPhone: p.businessPhone || "",
-          businessEmail: p.businessEmail || "",
-        }));
-      }
+      if (savedBiz) localBiz = JSON.parse(savedBiz);
       const savedBrand = localStorage.getItem(BRANDING_KEY);
-      if (savedBrand) {
-        const b = JSON.parse(savedBrand);
-        setForm((prev) => ({
-          ...prev,
-          logoDataUrl: b.logoDataUrl ?? null,
-          primaryColor: b.primaryColor ?? null,
-          secondaryColor: b.secondaryColor ?? null,
-          tertiaryColor: b.tertiaryColor ?? null,
-        }));
-      }
+      if (savedBrand) localBrand = JSON.parse(savedBrand);
       const savedOpts = localStorage.getItem(OPTIONS_KEY);
-      if (savedOpts) {
-        const o = JSON.parse(savedOpts);
-        setForm((prev) => ({
-          ...prev,
-          tone: o.tone || "standard",
-          licensedInsured: o.licensedInsured ?? false,
-          satisfactionGuarantee: o.satisfactionGuarantee ?? false,
-        }));
-      }
+      if (savedOpts) localOpts = JSON.parse(savedOpts);
     } catch {}
-  }, []);
+
+    setForm((prev) => ({
+      ...prev,
+      // Business info: DB profile > localStorage > empty
+      businessName: profile?.business_name || localBiz.businessName || prev.businessName,
+      businessPhone: profile?.business_phone || localBiz.businessPhone || prev.businessPhone,
+      businessEmail: localBiz.businessEmail || user?.email || prev.businessEmail,
+      // Branding: DB branding > localStorage > null
+      logoDataUrl: brandingDefaults?.logo_url ?? localBrand.logoDataUrl ?? prev.logoDataUrl,
+      primaryColor: brandingDefaults?.primary_color ?? localBrand.primaryColor ?? prev.primaryColor,
+      secondaryColor: brandingDefaults?.secondary_color ?? localBrand.secondaryColor ?? prev.secondaryColor,
+      tertiaryColor: brandingDefaults?.accent_color ?? localBrand.tertiaryColor ?? prev.tertiaryColor,
+      // Options: DB tone > localStorage > default
+      tone: brandingDefaults?.default_tone || localOpts.tone || prev.tone,
+      licensedInsured: localOpts.licensedInsured ?? prev.licensedInsured,
+      satisfactionGuarantee: localOpts.satisfactionGuarantee ?? prev.satisfactionGuarantee,
+    }));
+  }, [profile, brandingDefaults, brandingLoading, defaultsApplied, duplicateData, user]);
 
   // Prefill from duplicate data
   useEffect(() => {
