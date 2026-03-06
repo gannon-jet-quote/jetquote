@@ -88,6 +88,26 @@ const PRESET_COLORS = [
   makeColor("Pale Pink", "#ffcce6"),
 ] as const;
 
+const PRIMARY_HEADER_COLORS = [
+  // Neutral / Soft Grays
+  makeColor("Mid Gray", "#6B6B6B"),
+  makeColor("Warm Gray", "#7A7A7A"),
+  makeColor("Soft Gray", "#8A8A8A"),
+  makeColor("Light Ash", "#9A9A9A"),
+  makeColor("Silver Mist", "#B5B5B5"),
+  // Soft Muted Colors
+  makeColor("Dusty Rose", "#D9A29B"),
+  makeColor("Blush", "#DDB6B6"),
+  makeColor("Warm Sand", "#E8D2B8"),
+  makeColor("Soft Gold", "#E8D9A9"),
+  makeColor("Sage", "#B7C9B4"),
+  makeColor("Mist Teal", "#B6C8CC"),
+  makeColor("Powder Blue", "#AFC4DD"),
+  makeColor("Slate Blue", "#B4C2D4"),
+  makeColor("Soft Lavender", "#C0BBD2"),
+  makeColor("Mauve", "#D1B9C8"),
+] as const;
+
 export type ColorChoice = { name: string; hex: string; rgb: number[] };
 
 interface Props {
@@ -105,7 +125,7 @@ function Swatch({
   selected,
   onClick,
 }: {
-  color: (typeof PRESET_COLORS)[number];
+  color: { name: string; hex: string; rgb: number[] };
   selected: boolean;
   onClick: () => void;
 }) {
@@ -135,16 +155,18 @@ function PaletteRow({
   label,
   selected,
   onChange,
+  colors = PRESET_COLORS as readonly { name: string; hex: string; rgb: number[] }[],
 }: {
   label: string;
   selected: ColorChoice | null;
   onChange: (c: ColorChoice | null) => void;
+  colors?: readonly { name: string; hex: string; rgb: number[] }[];
 }) {
   return (
     <div className="space-y-2">
       <Label className="text-secondary-foreground text-xs">{label}</Label>
-      <div className="grid grid-cols-7 sm:grid-cols-11 gap-1.5">
-        {PRESET_COLORS.map((c) => (
+      <div className="grid grid-cols-5 sm:grid-cols-8 gap-1.5">
+        {colors.map((c) => (
           <Swatch
             key={c.name}
             color={c}
