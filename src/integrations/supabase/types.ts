@@ -94,10 +94,12 @@ export type Database = {
       }
       proposals: {
         Row: {
+          accepted_at: string | null
           branding: Json | null
           client_email: string | null
           client_name: string
           created_at: string
+          declined_at: string | null
           email_body: string | null
           email_subject: string | null
           id: string
@@ -105,10 +107,13 @@ export type Database = {
           options: Json | null
           pdf_url: string | null
           proposal_text: string
+          public_token: string | null
+          responded_at: string | null
           sent_at: string | null
           sent_to: string | null
           service_address: string
           service_type: string
+          status: string
           tone: string
           total_price_formatted: string
           total_price_number: number
@@ -116,10 +121,12 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          accepted_at?: string | null
           branding?: Json | null
           client_email?: string | null
           client_name: string
           created_at?: string
+          declined_at?: string | null
           email_body?: string | null
           email_subject?: string | null
           id?: string
@@ -127,10 +134,13 @@ export type Database = {
           options?: Json | null
           pdf_url?: string | null
           proposal_text: string
+          public_token?: string | null
+          responded_at?: string | null
           sent_at?: string | null
           sent_to?: string | null
           service_address: string
           service_type: string
+          status?: string
           tone: string
           total_price_formatted: string
           total_price_number: number
@@ -138,10 +148,12 @@ export type Database = {
           user_id: string
         }
         Update: {
+          accepted_at?: string | null
           branding?: Json | null
           client_email?: string | null
           client_name?: string
           created_at?: string
+          declined_at?: string | null
           email_body?: string | null
           email_subject?: string | null
           id?: string
@@ -149,10 +161,13 @@ export type Database = {
           options?: Json | null
           pdf_url?: string | null
           proposal_text?: string
+          public_token?: string | null
+          responded_at?: string | null
           sent_at?: string | null
           sent_to?: string | null
           service_address?: string
           service_type?: string
+          status?: string
           tone?: string
           total_price_formatted?: string
           total_price_number?: number
