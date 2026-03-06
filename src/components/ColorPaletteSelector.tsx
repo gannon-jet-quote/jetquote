@@ -211,7 +211,7 @@ const ColorPaletteSelector = ({
       <p className="text-xs text-muted-foreground">
         Choose a primary color for the header and a secondary for accents.
       </p>
-      <PaletteRow label="Primary (Header)" selected={primaryColor} onChange={onPrimaryChange} />
+      <PaletteRow label="Primary (Header)" selected={primaryColor} onChange={onPrimaryChange} colors={PRIMARY_HEADER_COLORS} />
       <PaletteRow label="Secondary (Accents)" selected={secondaryColor} onChange={onSecondaryChange} />
       {tone === "luxury" && onTertiaryChange && (
         <div className="space-y-2">
