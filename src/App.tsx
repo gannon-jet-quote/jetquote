@@ -15,6 +15,7 @@ import Settings from "./pages/Settings";
 import Onboarding from "./pages/Onboarding";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminUserDetail from "./pages/AdminUserDetail";
+import ProposalRespond from "./pages/ProposalRespond";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -71,6 +72,7 @@ const App = () => (
                 </AdminRoute>
               }
             />
+            <Route path="/proposal/respond/:token" element={<ProposalRespond />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
