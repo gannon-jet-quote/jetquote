@@ -44,6 +44,23 @@ const Dashboard = () => {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [emailProposal, setEmailProposal] = useState<Proposal | null>(null);
 
+  const sentThisMonth = (() => {
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    return proposals.filter(
+      (p) => p.sent_at && new Date(p.sent_at) >= startOfMonth
+    ).length;
+  })();
+
+  const avgJobValue = proposals.length
+    ? proposals.reduce((sum, p) => sum + (Number(p.total_price_number) || 0), 0) / proposals.length
+    : 0;
+
+  const totalValue = proposals.reduce((sum, p) => sum + (Number(p.total_price_number) || 0), 0);
+
+  const fmtCurrency = (v: number) =>
+    v.toLocaleString("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 2 });
+
   const fetchProposals = async () => {
     const { data, error } = await supabase
       .from("proposals")
