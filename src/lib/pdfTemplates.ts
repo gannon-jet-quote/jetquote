@@ -565,6 +565,28 @@ function buildStyledDoc(proposal: string, meta: ProposalMeta): jsPDF {
   drawDivider(doc, y, mx, W, c.dividerColor);
   y += SECTION_GAP;
 
+  // Licensed & Insured badge — trust signal above guarantee
+  if (meta.licensedInsured) {
+    const badge = t.badgeStyle === "filled" ? "LICENSED & INSURED" : "Licensed & Insured";
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(t.badgeSize);
+    const bw = doc.getTextWidth(badge) + 5;
+
+    if (t.badgeStyle === "filled") {
+      setF(doc, c.accentColor);
+      doc.roundedRect(mx, y - 3.5, bw, 5, 1, 1, "F");
+      setC(doc, c.headerBg || [255, 255, 255]);
+      doc.text(badge, mx + 2.5, y);
+    } else {
+      setD(doc, c.accentColor);
+      doc.setLineWidth(0.35);
+      doc.roundedRect(mx, y - 3.5, bw, 5, 1, 1, "S");
+      setC(doc, c.accentColor);
+      doc.text(badge, mx + 2.5, y);
+    }
+    y += 6;
+  }
+
   if (meta.satisfactionGuarantee) {
     doc.setFont("helvetica", "bold");
     doc.setFontSize(8.5);
