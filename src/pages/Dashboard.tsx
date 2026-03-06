@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Loader2, Plus, Eye, Download, Copy, Trash2, FileText, Files, Mail } from "lucide-react";
+import { Loader2, Plus, Eye, Download, Copy, Trash2, FileText, Files, Mail, Send, DollarSign, TrendingUp } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -28,11 +28,13 @@ interface Proposal {
   service_address: string;
   job_description: string;
   total_price_formatted: string;
+  total_price_number: number;
   tone: string;
   proposal_text: string;
   branding: any;
   options: any;
   created_at: string;
+  sent_at: string | null;
 }
 
 const Dashboard = () => {
@@ -43,6 +45,23 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [emailProposal, setEmailProposal] = useState<Proposal | null>(null);
+
+  const sentThisMonth = (() => {
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    return proposals.filter(
+      (p) => p.sent_at && new Date(p.sent_at) >= startOfMonth
+    ).length;
+  })();
+
+  const avgJobValue = proposals.length
+    ? proposals.reduce((sum, p) => sum + (Number(p.total_price_number) || 0), 0) / proposals.length
+    : 0;
+
+  const totalValue = proposals.reduce((sum, p) => sum + (Number(p.total_price_number) || 0), 0);
+
+  const fmtCurrency = (v: number) =>
+    v.toLocaleString("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 2 });
 
   const fetchProposals = async () => {
     const { data, error } = await supabase
@@ -140,6 +159,24 @@ const Dashboard = () => {
             >
               <Plus className="h-4 w-4" /> New Proposal
             </Link>
+          </div>
+
+          <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
+            {[
+              { label: "Proposals Sent This Month", value: String(sentThisMonth), icon: Send },
+              { label: "Average Job Value All Time", value: fmtCurrency(avgJobValue), icon: TrendingUp },
+              { label: "Total Value of Proposals", value: fmtCurrency(totalValue), icon: DollarSign },
+            ].map((card) => (
+              <div key={card.label} className="rounded-xl border border-border bg-card p-5">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
+                    <card.icon className="h-4 w-4 text-primary" />
+                  </div>
+                  <p className="text-sm text-muted-foreground">{card.label}</p>
+                </div>
+                <p className="mt-3 font-display text-2xl font-bold text-foreground">{card.value}</p>
+              </div>
+            ))}
           </div>
 
           {loading ? (
