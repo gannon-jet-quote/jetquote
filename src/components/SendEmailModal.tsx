@@ -63,8 +63,9 @@ const SendEmailModal = ({ proposal, open, onOpenChange, onSent, userName }: Prop
     if (!p) return;
     setTo(p.client_email || "");
     setSubject(buildSubject(p.client_name, businessName));
-    const fallbackName = businessName || undefined;
-    setBody(buildBody(p.client_name, userName || fallbackName));
+    const senderName = userName || businessName || undefined;
+    const bizEmail = p.branding?.businessEmail || "";
+    setBody(buildBody(p.client_name, senderName, bizEmail));
     setStatus("idle");
     setErrorMsg("");
   };
