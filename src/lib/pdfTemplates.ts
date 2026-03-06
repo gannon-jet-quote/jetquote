@@ -362,7 +362,7 @@ function buildStyledDoc(proposal: string, meta: ProposalMeta): jsPDF {
     try {
       const fmt = meta.logoDataUrl.includes("image/png") ? "PNG" : meta.logoDataUrl.includes("image/svg") ? "PNG" : "JPEG";
       logoW = logoMaxH * 2.5;
-      const gap = 4;
+      const gap = 2.5;
       const totalBlockW = logoW + gap + nameW;
       const blockX = (W - totalBlockW) / 2;
       doc.addImage(meta.logoDataUrl, fmt, blockX, logoYBase, 0, logoMaxH);
