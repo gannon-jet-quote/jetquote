@@ -636,8 +636,7 @@ function buildStyledDoc(proposal: string, meta: ProposalMeta): jsPDF {
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8);
   setC(doc, c.bodyColor);
-  const nextStepsText = slots.nextSteps?.content
-    || `To accept this proposal, please contact us at ${meta.businessEmail} or ${meta.businessPhone}. We look forward to working with you.`;
+  const nextStepsText = "To accept this proposal and secure your spot on our schedule, please email our business address within 24 hours.";
   const nsLines = doc.splitTextToSize(nextStepsText, cw);
   for (let i = 0; i < Math.min(nsLines.length, 3); i++) { doc.text(nsLines[i], mx, y); y += 2.8; }
 
