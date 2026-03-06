@@ -41,9 +41,12 @@ function buildSubject(clientName: string, businessName?: string): string {
   return `${name} Job Proposal`;
 }
 
-function buildBody(clientName: string, userName?: string): string {
+function buildBody(clientName: string, userName?: string, businessEmail?: string): string {
   const senderName = userName?.trim() || "Our Team";
-  return `Hello ${clientName?.trim() || "there"},\n\nAs requested, here is your job proposal. Let me know if you have any questions.\n\nHave a great day,\n${senderName}`;
+  const contactLine = businessEmail?.trim()
+    ? `\n\nPlease contact ${businessEmail.trim()} for any reply to this quote.`
+    : "";
+  return `Hello ${clientName?.trim() || "there"},\n\nAs requested, here is your job proposal. Let me know if you have any questions.${contactLine}\n\nHave a great day,\n${senderName}`;
 }
 
 const SendEmailModal = ({ proposal, open, onOpenChange, onSent, userName }: Props) => {
@@ -60,8 +63,9 @@ const SendEmailModal = ({ proposal, open, onOpenChange, onSent, userName }: Prop
     if (!p) return;
     setTo(p.client_email || "");
     setSubject(buildSubject(p.client_name, businessName));
-    const fallbackName = businessName || undefined;
-    setBody(buildBody(p.client_name, userName || fallbackName));
+    const senderName = userName || businessName || undefined;
+    const bizEmail = p.branding?.businessEmail || "";
+    setBody(buildBody(p.client_name, senderName, bizEmail));
     setStatus("idle");
     setErrorMsg("");
   };
