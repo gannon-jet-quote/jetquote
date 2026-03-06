@@ -343,8 +343,27 @@ function buildStyledDoc(proposal: string, meta: ProposalMeta): jsPDF {
 
   const headerH = c.headerBg ? (meta.tone === "luxury" ? 38 : 36) : 0;
   if (c.headerBg) {
+    // Draw gradient: solid top 75%, fade bottom 25%
+    const solidH = headerH * 0.75;
+    const fadeH = headerH - solidH;
+    const fadeSteps = 20;
+    const stepH = fadeH / fadeSteps;
+
+    // Solid portion
     setF(doc, c.headerBg);
-    doc.rect(0, 0, W, headerH, "F");
+    doc.rect(0, 0, W, solidH, "F");
+
+    // Gradient fade portion
+    for (let i = 0; i < fadeSteps; i++) {
+      const progress = i / fadeSteps; // 0 → 1
+      const alpha = 1 - progress; // 1 → 0
+      // Blend header color toward white (page background)
+      const r = Math.round(c.headerBg[0] * alpha + 255 * (1 - alpha));
+      const g = Math.round(c.headerBg[1] * alpha + 255 * (1 - alpha));
+      const b = Math.round(c.headerBg[2] * alpha + 255 * (1 - alpha));
+      doc.setFillColor(r, g, b);
+      doc.rect(0, solidH + i * stepH, W, stepH + 0.1, "F");
+    }
   }
 
   // Logo rendering — max height ~25mm (~100px at 96dpi), width auto, centered
