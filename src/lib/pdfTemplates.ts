@@ -370,44 +370,7 @@ function buildStyledDoc(proposal: string, meta: ProposalMeta): jsPDF {
   const nameY = c.headerBg ? (meta.tone === "luxury" ? 18 : 16) : 15;
   doc.text(businessNameDisplay, textOffsetX, nameY);
 
-  // Right column: contact info
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(t.contactSize);
-  setC(doc, c.headerBg ? c.headerText : c.lightGray);
-  const contactBaseY = c.headerBg ? (meta.tone === "luxury" ? 12 : 10) : 9;
-  let contactY = contactBaseY;
-  doc.text(meta.businessPhone, W - mx, contactY, { align: "right" });
-  contactY += 4;
-  doc.text(meta.businessEmail, W - mx, contactY, { align: "right" });
-  contactY += 4;
-
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(t.contactSize);
-  setC(doc, c.headerBg ? c.headerText : c.lightGray);
-  doc.text(`Date: ${today}`, W - mx, contactY, { align: "right" });
-  contactY += 4;
-
-  if (meta.licensedInsured) {
-    const badge = t.badgeStyle === "filled" ? "LICENSED & INSURED" : "Licensed & Insured";
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(t.badgeSize);
-    const bw = doc.getTextWidth(badge) + 5;
-    const badgeX = W - mx - bw;
-
-    if (t.badgeStyle === "filled") {
-      setF(doc, c.accentColor);
-      doc.roundedRect(badgeX, contactY - 3.5, bw, 5, 1, 1, "F");
-      setC(doc, c.headerBg || [255, 255, 255]);
-      doc.text(badge, badgeX + 2.5, contactY);
-    } else {
-      setD(doc, c.accentColor);
-      doc.setLineWidth(0.35);
-      doc.roundedRect(badgeX, contactY - 3.5, bw, 5, 1, 1, "S");
-      setC(doc, c.accentColor);
-      doc.text(badge, badgeX + 2.5, contactY);
-    }
-    contactY += 5;
-  }
+  // Header contact block removed — info is in "Prepared By" section below
 
   y = c.headerBg ? headerH + 4 : 27;
   drawDivider(doc, y, mx, W, c.dividerColor);
