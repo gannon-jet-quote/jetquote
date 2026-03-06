@@ -28,7 +28,7 @@ Deno.serve(async (req) => {
 
     const { data: proposal, error } = await supabase
       .from("proposals")
-      .select("id, client_name, service_type, total_price_formatted, status, branding")
+      .select("id, client_name, service_type, total_price_formatted, status, branding, user_id")
       .eq("public_token", token)
       .single();
 
@@ -39,12 +39,32 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Fetch branding settings for logo and colors
+    let logoUrl = null;
+    let primaryColor = null;
+    let accentColor = null;
+    if (proposal.user_id) {
+      const { data: branding } = await supabase
+        .from("branding_settings")
+        .select("logo_url, primary_color, accent_color")
+        .eq("user_id", proposal.user_id)
+        .maybeSingle();
+      if (branding) {
+        logoUrl = branding.logo_url;
+        primaryColor = branding.primary_color;
+        accentColor = branding.accent_color;
+      }
+    }
+
     return new Response(JSON.stringify({
       client_name: proposal.client_name,
       service_type: proposal.service_type,
       total_price_formatted: proposal.total_price_formatted,
       status: proposal.status,
       business_name: (proposal.branding as any)?.businessName || "",
+      logo_url: logoUrl,
+      primary_color: primaryColor,
+      accent_color: accentColor,
     }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
