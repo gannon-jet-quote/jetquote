@@ -147,6 +147,10 @@ const ProposalRespond = () => {
           <div className="h-1.5" style={{ backgroundColor: brandColor }} />
 
           <div className="p-8">
+            {/* Header */}
+            <h1 className="mb-2 text-center text-lg font-bold text-slate-800">
+              Proposal Review
+            </h1>
             {/* Intro message */}
             <p className="mb-6 text-center text-sm text-slate-500">
               You have received a service proposal from{" "}
@@ -202,7 +206,7 @@ const ProposalRespond = () => {
             ) : (
               <div className="space-y-4">
                 <p className="text-center text-sm text-slate-500">
-                  Please choose an option below:
+                  Please confirm how you would like to proceed with this proposal.
                 </p>
                 <button
                   onClick={() => handleRespond("accept")}
@@ -227,6 +231,9 @@ const ProposalRespond = () => {
                     "Decline Proposal"
                   )}
                 </button>
+                <p className="pt-1 text-center text-xs text-slate-400">
+                  Selecting an option above simply notifies your service provider of your decision regarding this proposal.
+                </p>
               </div>
             )}
           </div>
