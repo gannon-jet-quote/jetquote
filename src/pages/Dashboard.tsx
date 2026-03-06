@@ -161,6 +161,24 @@ const Dashboard = () => {
             </Link>
           </div>
 
+          <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
+            {[
+              { label: "Proposals Sent This Month", value: String(sentThisMonth), icon: Send },
+              { label: "Average Job Value All Time", value: fmtCurrency(avgJobValue), icon: TrendingUp },
+              { label: "Total Value of Proposals", value: fmtCurrency(totalValue), icon: DollarSign },
+            ].map((card) => (
+              <div key={card.label} className="rounded-xl border border-border bg-card p-5">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
+                    <card.icon className="h-4 w-4 text-primary" />
+                  </div>
+                  <p className="text-sm text-muted-foreground">{card.label}</p>
+                </div>
+                <p className="mt-3 font-display text-2xl font-bold text-foreground">{card.value}</p>
+              </div>
+            ))}
+          </div>
+
           {loading ? (
             <div className="flex items-center justify-center py-20">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
