@@ -341,7 +341,7 @@ function buildStyledDoc(proposal: string, meta: ProposalMeta): jsPDF {
   const businessNameDisplay = t.businessNameTransform === "uppercase"
     ? meta.businessName.toUpperCase() : meta.businessName;
 
-  const headerH = c.headerBg ? (meta.tone === "luxury" ? 34 : 30) : 0;
+  const headerH = c.headerBg ? (meta.tone === "luxury" ? 38 : 36) : 0;
   if (c.headerBg) {
     setF(doc, c.headerBg);
     doc.rect(0, 0, W, headerH, "F");
