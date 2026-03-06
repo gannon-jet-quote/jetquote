@@ -341,38 +341,37 @@ function buildStyledDoc(proposal: string, meta: ProposalMeta): jsPDF {
   const businessNameDisplay = t.businessNameTransform === "uppercase"
     ? meta.businessName.toUpperCase() : meta.businessName;
 
-  const headerH = c.headerBg ? (meta.tone === "luxury" ? 34 : 30) : 0;
+  const headerH = c.headerBg ? (meta.tone === "luxury" ? 38 : 36) : 0;
   if (c.headerBg) {
     setF(doc, c.headerBg);
     doc.rect(0, 0, W, headerH, "F");
   }
 
-  // Logo rendering
+  // Logo rendering — max height ~25mm (~100px at 96dpi), width auto
   let logoW = 0;
-  const logoH = 10;
+  const logoMaxH = 25;
   const logoX = mx;
-  const logoYBase = c.headerBg ? (meta.tone === "luxury" ? 10 : 8) : 5;
+  const logoYBase = c.headerBg ? (meta.tone === "luxury" ? 6 : 5) : 5;
   if (meta.logoDataUrl) {
     try {
       const fmt = meta.logoDataUrl.includes("image/png") ? "PNG" : meta.logoDataUrl.includes("image/svg") ? "PNG" : "JPEG";
-      doc.addImage(meta.logoDataUrl, fmt, logoX, logoYBase, 0, logoH);
-      logoW = logoH * 2.5;
+      doc.addImage(meta.logoDataUrl, fmt, logoX, logoYBase, 0, logoMaxH);
+      logoW = logoMaxH * 2.5;
     } catch {
       logoW = 0;
     }
   }
 
-  const textOffsetX = logoW > 0 ? mx + logoW + 3 : mx;
+  const textOffsetX = logoW > 0 ? mx + logoW + 4 : mx;
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(t.businessNameSize);
   setC(doc, c.headerText);
-  const nameY = c.headerBg ? (meta.tone === "luxury" ? 18 : 16) : 15;
+  const nameY = c.headerBg ? (meta.tone === "luxury" ? 22 : 20) : 22;
   doc.text(businessNameDisplay, textOffsetX, nameY);
 
-  // Header contact block removed — info is in "Prepared By" section below
-
-  y = c.headerBg ? headerH + 4 : 27;
+  // Add spacing below logo before divider (~15px ≈ 4mm)
+  y = c.headerBg ? headerH + 5 : (meta.logoDataUrl ? 34 : 27);
   drawDivider(doc, y, mx, W, c.dividerColor);
   y += SECTION_GAP;
 
