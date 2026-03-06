@@ -5,3 +5,9 @@ verify_jwt = false
 
 [functions.send-proposal-email]
 verify_jwt = false
+
+[functions.proposal-respond]
+verify_jwt = false
+
+[functions.get-proposal-by-token]
+verify_jwt = false

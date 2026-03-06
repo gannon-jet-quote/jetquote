@@ -285,7 +285,8 @@ const ProposalGenerator = () => {
             conditionalFields: form.conditionalFields,
           },
           proposal_text: proposalText,
-        });
+          status: "draft",
+        } as any);
       }
     } catch (e: any) {
       toast({ title: "Error", description: e.message || "Something went wrong", variant: "destructive" });

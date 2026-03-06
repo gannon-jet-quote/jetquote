@@ -35,7 +35,15 @@ interface Proposal {
   options: any;
   created_at: string;
   sent_at: string | null;
+  status: string;
 }
+
+const statusConfig: Record<string, { label: string; className: string }> = {
+  draft: { label: "Draft", className: "border-muted-foreground/30 bg-muted text-muted-foreground" },
+  sent: { label: "Sent", className: "border-primary/30 bg-primary/10 text-primary" },
+  accepted: { label: "Accepted", className: "border-green-500/30 bg-green-500/10 text-green-500" },
+  declined: { label: "Declined", className: "border-destructive/30 bg-destructive/10 text-destructive" },
+};
 
 const Dashboard = () => {
   const { user, profile } = useAuth();
@@ -212,8 +220,8 @@ const Dashboard = () => {
                         <span className="text-border">•</span>
                         <span>{p.total_price_formatted}</span>
                         <span className="text-border">•</span>
-                        <span className="rounded-full border border-border bg-secondary px-2.5 py-0.5 text-xs text-secondary-foreground">
-                          {p.tone}
+                        <span className={`rounded-full border px-2.5 py-0.5 text-xs font-medium ${statusConfig[p.status]?.className || statusConfig.draft.className}`}>
+                          {statusConfig[p.status]?.label || "Draft"}
                         </span>
                       </div>
                     </div>

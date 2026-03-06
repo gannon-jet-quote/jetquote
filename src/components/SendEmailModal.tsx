@@ -113,8 +113,19 @@ const SendEmailModal = ({ proposal, open, onOpenChange, onSent, userName }: Prop
       const fileDate = new Date().toISOString().slice(0, 10);
       const pdfFilename = `${sanitized || "Proposal"}-${fileDate}.pdf`;
 
+      // Generate a unique public token for client response
+      const publicToken = crypto.randomUUID();
+
+      // Save the token to the proposal
+      await supabase
+        .from("proposals")
+        .update({ public_token: publicToken, status: "sent" } as any)
+        .eq("id", p.id);
+
+      const responseUrl = `${window.location.origin}/proposal/respond/${publicToken}`;
+
       const { data, error } = await supabase.functions.invoke("send-proposal-email", {
-        body: { proposalId: p.id, to, subject, body, pdfBase64, pdfFilename },
+        body: { proposalId: p.id, to, subject, body, pdfBase64, pdfFilename, responseUrl },
       });
 
       if (error) throw new Error(error.message);

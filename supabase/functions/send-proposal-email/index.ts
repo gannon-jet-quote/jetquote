@@ -38,7 +38,7 @@ Deno.serve(async (req) => {
     const userId = claimsData.claims.sub;
 
     // Parse body
-    const { proposalId, to, subject, body, pdfBase64, pdfFilename } = await req.json();
+    const { proposalId, to, subject, body, pdfBase64, pdfFilename, responseUrl } = await req.json();
 
     if (!proposalId || !to || !subject || !body || !pdfBase64) {
       return new Response(JSON.stringify({ error: "Missing required fields" }), {
@@ -70,6 +70,11 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Append response link to email body if available
+    const emailBody = responseUrl
+      ? `${body}\n\nReview Proposal: ${responseUrl}`
+      : body;
+
     const emailRes = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
@@ -80,7 +85,7 @@ Deno.serve(async (req) => {
         from: "JetQuote <info@jet-quote.com>",
         to: [to],
         subject,
-        text: body,
+        text: emailBody,
         attachments: [
           {
             filename: pdfFilename || "Proposal.pdf",
