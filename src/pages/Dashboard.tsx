@@ -28,11 +28,13 @@ interface Proposal {
   service_address: string;
   job_description: string;
   total_price_formatted: string;
+  total_price_number: number;
   tone: string;
   proposal_text: string;
   branding: any;
   options: any;
   created_at: string;
+  sent_at: string | null;
 }
 
 const Dashboard = () => {
