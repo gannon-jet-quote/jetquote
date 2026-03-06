@@ -61,6 +61,7 @@ export type Database = {
           first_name: string
           full_name: string | null
           last_name: string
+          role: string
           title: string | null
           updated_at: string
           user_id: string
@@ -72,6 +73,7 @@ export type Database = {
           first_name?: string
           full_name?: string | null
           last_name?: string
+          role?: string
           title?: string | null
           updated_at?: string
           user_id: string
@@ -83,6 +85,7 @@ export type Database = {
           first_name?: string
           full_name?: string | null
           last_name?: string
+          role?: string
           title?: string | null
           updated_at?: string
           user_id?: string
@@ -163,7 +166,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_user_role: { Args: { _user_id: string }; Returns: string }
     }
     Enums: {
       [_ in never]: never
