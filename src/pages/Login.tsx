@@ -25,21 +25,28 @@ const Login = () => {
     }
     setLoading(true);
     const { error } = await signIn(email, password);
-    setLoading(false);
     if (error) {
+      setLoading(false);
       toast({ title: "Login failed", description: error.message, variant: "destructive" });
-    } else {
-      // Check role to determine redirect
+      return;
+    }
+    // Fetch user and role before redirecting
+    const { data: { user: authUser } } = await supabase.auth.getUser();
+    if (authUser) {
       const { data: profileData } = await supabase
         .from("profiles")
         .select("role")
-        .eq("user_id", (await supabase.auth.getUser()).data.user?.id ?? "")
+        .eq("user_id", authUser.id)
         .maybeSingle();
+      setLoading(false);
       if (profileData?.role === "admin") {
-        navigate("/admin");
+        navigate("/admin", { replace: true });
       } else {
-        navigate("/dashboard");
+        navigate("/dashboard", { replace: true });
       }
+    } else {
+      setLoading(false);
+      navigate("/dashboard", { replace: true });
     }
   };
 
