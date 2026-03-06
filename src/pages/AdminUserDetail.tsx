@@ -30,8 +30,8 @@ const AdminUserDetail = () => {
       setBranding(brandingRes.data);
 
       // Get email from auth via edge function or proposals
-      const proposalWithEmail = (proposalsRes.data || []).find((p: any) => p.branding?.businessEmail);
-      if (proposalWithEmail) setEmail(proposalWithEmail.branding.businessEmail);
+      const proposalWithEmail = (proposalsRes.data || []).find((p: any) => (p.branding as any)?.businessEmail);
+      if (proposalWithEmail) setEmail((proposalWithEmail.branding as any).businessEmail);
 
       setLoading(false);
     };
