@@ -361,11 +361,14 @@ function buildStyledDoc(proposal: string, meta: ProposalMeta): jsPDF {
   if (meta.logoDataUrl) {
     try {
       const fmt = meta.logoDataUrl.includes("image/png") ? "PNG" : meta.logoDataUrl.includes("image/svg") ? "PNG" : "JPEG";
-      logoW = logoMaxH * 2.5;
-      const gap = 2.5;
+      // Measure actual logo dimensions to avoid reserving excess width
+      const imgProps = doc.getImageProperties(meta.logoDataUrl);
+      const aspectRatio = imgProps.width / imgProps.height;
+      logoW = logoMaxH * aspectRatio; // actual rendered width based on aspect ratio
+      const gap = 2; // ~6-8px tight gap
       const totalBlockW = logoW + gap + nameW;
       const blockX = (W - totalBlockW) / 2;
-      doc.addImage(meta.logoDataUrl, fmt, blockX, logoYBase, 0, logoMaxH);
+      doc.addImage(meta.logoDataUrl, fmt, blockX, logoYBase, logoW, logoMaxH);
       doc.text(businessNameDisplay, blockX + logoW + gap, nameY);
     } catch {
       logoW = 0;
