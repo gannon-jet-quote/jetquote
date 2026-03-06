@@ -367,12 +367,11 @@ function buildStyledDoc(proposal: string, meta: ProposalMeta): jsPDF {
   doc.setFont("helvetica", "bold");
   doc.setFontSize(t.businessNameSize);
   setC(doc, c.headerText);
-  const nameY = c.headerBg ? (meta.tone === "luxury" ? 18 : 16) : 15;
+  const nameY = c.headerBg ? (meta.tone === "luxury" ? 22 : 20) : 22;
   doc.text(businessNameDisplay, textOffsetX, nameY);
 
-  // Header contact block removed — info is in "Prepared By" section below
-
-  y = c.headerBg ? headerH + 4 : 27;
+  // Add spacing below logo before divider (~15px ≈ 4mm)
+  y = c.headerBg ? headerH + 5 : (meta.logoDataUrl ? 34 : 27);
   drawDivider(doc, y, mx, W, c.dividerColor);
   y += SECTION_GAP;
 
