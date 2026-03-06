@@ -226,5 +226,5 @@ const ColorPaletteSelector = ({
   );
 };
 
-export { PRESET_COLORS };
+export { PRESET_COLORS, PRIMARY_HEADER_COLORS };
 export default ColorPaletteSelector;
