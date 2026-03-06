@@ -72,7 +72,7 @@ Deno.serve(async (req) => {
 
     // Append response link to email body if available
     const emailBody = responseUrl
-      ? `${body}\n\nReview Proposal: ${responseUrl}`
+      ? `${body}\n\nAccept/Decline Proposal Here:\n${responseUrl}`
       : body;
 
     const emailRes = await fetch("https://api.resend.com/emails", {
