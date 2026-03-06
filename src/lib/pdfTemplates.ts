@@ -347,28 +347,33 @@ function buildStyledDoc(proposal: string, meta: ProposalMeta): jsPDF {
     doc.rect(0, 0, W, headerH, "F");
   }
 
-  // Logo rendering — max height ~25mm (~100px at 96dpi), width auto
+  // Logo rendering — max height ~25mm (~100px at 96dpi), width auto, centered
   let logoW = 0;
   const logoMaxH = 25;
-  const logoX = mx;
   const logoYBase = c.headerBg ? (meta.tone === "luxury" ? 6 : 5) : 5;
-  if (meta.logoDataUrl) {
-    try {
-      const fmt = meta.logoDataUrl.includes("image/png") ? "PNG" : meta.logoDataUrl.includes("image/svg") ? "PNG" : "JPEG";
-      doc.addImage(meta.logoDataUrl, fmt, logoX, logoYBase, 0, logoMaxH);
-      logoW = logoMaxH * 2.5;
-    } catch {
-      logoW = 0;
-    }
-  }
-
-  const textOffsetX = logoW > 0 ? mx + logoW + 4 : mx;
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(t.businessNameSize);
   setC(doc, c.headerText);
   const nameY = c.headerBg ? (meta.tone === "luxury" ? 22 : 20) : 22;
-  doc.text(businessNameDisplay, textOffsetX, nameY);
+  const nameW = doc.getTextWidth(businessNameDisplay);
+
+  if (meta.logoDataUrl) {
+    try {
+      const fmt = meta.logoDataUrl.includes("image/png") ? "PNG" : meta.logoDataUrl.includes("image/svg") ? "PNG" : "JPEG";
+      logoW = logoMaxH * 2.5;
+      const gap = 4;
+      const totalBlockW = logoW + gap + nameW;
+      const blockX = (W - totalBlockW) / 2;
+      doc.addImage(meta.logoDataUrl, fmt, blockX, logoYBase, 0, logoMaxH);
+      doc.text(businessNameDisplay, blockX + logoW + gap, nameY);
+    } catch {
+      logoW = 0;
+      doc.text(businessNameDisplay, W / 2, nameY, { align: "center" });
+    }
+  } else {
+    doc.text(businessNameDisplay, W / 2, nameY, { align: "center" });
+  }
 
   // Add spacing below logo before divider (~15px ≈ 4mm)
   y = c.headerBg ? headerH + 5 : (meta.logoDataUrl ? 34 : 27);
