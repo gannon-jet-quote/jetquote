@@ -347,22 +347,22 @@ function buildStyledDoc(proposal: string, meta: ProposalMeta): jsPDF {
     doc.rect(0, 0, W, headerH, "F");
   }
 
-  // Logo rendering
+  // Logo rendering — max height ~25mm (~100px at 96dpi), width auto
   let logoW = 0;
-  const logoH = 10;
+  const logoMaxH = 25;
   const logoX = mx;
-  const logoYBase = c.headerBg ? (meta.tone === "luxury" ? 10 : 8) : 5;
+  const logoYBase = c.headerBg ? (meta.tone === "luxury" ? 6 : 5) : 5;
   if (meta.logoDataUrl) {
     try {
       const fmt = meta.logoDataUrl.includes("image/png") ? "PNG" : meta.logoDataUrl.includes("image/svg") ? "PNG" : "JPEG";
-      doc.addImage(meta.logoDataUrl, fmt, logoX, logoYBase, 0, logoH);
-      logoW = logoH * 2.5;
+      doc.addImage(meta.logoDataUrl, fmt, logoX, logoYBase, 0, logoMaxH);
+      logoW = logoMaxH * 2.5;
     } catch {
       logoW = 0;
     }
   }
 
-  const textOffsetX = logoW > 0 ? mx + logoW + 3 : mx;
+  const textOffsetX = logoW > 0 ? mx + logoW + 4 : mx;
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(t.businessNameSize);
