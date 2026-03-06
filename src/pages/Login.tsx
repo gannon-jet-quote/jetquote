@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Loader2, LogIn } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
@@ -28,7 +29,17 @@ const Login = () => {
     if (error) {
       toast({ title: "Login failed", description: error.message, variant: "destructive" });
     } else {
-      navigate("/dashboard");
+      // Check role to determine redirect
+      const { data: profileData } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("user_id", (await supabase.auth.getUser()).data.user?.id ?? "")
+        .maybeSingle();
+      if (profileData?.role === "admin") {
+        navigate("/admin");
+      } else {
+        navigate("/dashboard");
+      }
     }
   };
 
