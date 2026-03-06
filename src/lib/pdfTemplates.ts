@@ -423,7 +423,7 @@ function buildStyledDoc(proposal: string, meta: ProposalMeta): jsPDF {
   const hasTerms = !!(slots.terms?.content?.trim());
   const hasGuarantee = meta.satisfactionGuarantee;
   const investmentBlockH = 28; // fixed height for investment box
-  const footerContentH = (hasGuarantee ? 12 : 0) + 12; // guarantee + next steps in footer
+  const footerContentH = (meta.licensedInsured ? 8 : 0) + (hasGuarantee ? 12 : 0) + 12; // badge + guarantee + next steps in footer
 
   // Space for variable sections (scope, timeline, terms)
   const fixedSpaceUsed = investmentBlockH + footerContentH + SECTION_GAP * 4;
