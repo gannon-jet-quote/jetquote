@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Loader2, Plus, Eye, Download, Copy, Trash2, FileText, Files, Mail, Send, DollarSign, TrendingUp, LinkIcon, Pencil, AlertCircle, CheckCircle, XCircle, Clock } from "lucide-react";
+import { Loader2, Plus, Eye, Download, Copy, Trash2, FileText, Files, Mail, Send, DollarSign, TrendingUp, LinkIcon, Pencil, AlertCircle, CheckCircle, XCircle, Clock, BadgeDollarSign, CircleCheckBig } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,6 +19,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import SendEmailModal from "@/components/SendEmailModal";
+import PaymentRequestModal from "@/components/PaymentRequestModal";
 
 interface Proposal {
   id: string;
@@ -42,6 +43,8 @@ interface Proposal {
   followup_enabled: boolean;
   followup_scheduled_for: string | null;
   followup_sent_at: string | null;
+  completed_at: string | null;
+  payment_request_sent_at: string | null;
 }
 
 const statusConfig: Record<string, { label: string; className: string }> = {
@@ -49,6 +52,7 @@ const statusConfig: Record<string, { label: string; className: string }> = {
   sent: { label: "Sent", className: "border-primary/30 bg-primary/10 text-primary" },
   accepted: { label: "Accepted", className: "border-green-500/30 bg-green-500/10 text-green-500" },
   declined: { label: "Declined", className: "border-destructive/30 bg-destructive/10 text-destructive" },
+  completed: { label: "Completed", className: "border-emerald-600/30 bg-emerald-600/10 text-emerald-600" },
 };
 
 const Dashboard = () => {
@@ -59,6 +63,8 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [emailProposal, setEmailProposal] = useState<Proposal | null>(null);
+  const [paymentProposal, setPaymentProposal] = useState<Proposal | null>(null);
+  const [paymentProfile, setPaymentProfile] = useState<any>(null);
 
   const now = new Date();
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
