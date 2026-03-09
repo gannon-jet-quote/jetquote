@@ -75,9 +75,11 @@ const ProposalGenerator = () => {
   const { user, profile } = useAuth();
   const { settings: brandingDefaults, loading: brandingLoading } = useBrandingSettings();
   const duplicateData = (location.state as any)?.duplicate || null;
+  const editData = (location.state as any)?.edit || null;
+  const [editingProposalId, setEditingProposalId] = useState<string | null>(editData?.proposalId || null);
   const [form, setForm] = useState<FormData>(initialForm);
   const [loading, setLoading] = useState(false);
-  const [proposal, setProposal] = useState<string | null>(null);
+  const [proposal, setProposal] = useState<string | null>(editData?.proposalText || null);
   const [defaultsApplied, setDefaultsApplied] = useState(false);
   const { toast } = useToast();
 
