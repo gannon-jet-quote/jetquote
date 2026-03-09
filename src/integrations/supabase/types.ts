@@ -107,6 +107,7 @@ export type Database = {
           email_subject: string | null
           id: string
           job_description: string
+          needs_review: boolean
           options: Json | null
           pdf_url: string | null
           proposal_text: string
@@ -134,6 +135,7 @@ export type Database = {
           email_subject?: string | null
           id?: string
           job_description: string
+          needs_review?: boolean
           options?: Json | null
           pdf_url?: string | null
           proposal_text: string
@@ -161,6 +163,7 @@ export type Database = {
           email_subject?: string | null
           id?: string
           job_description?: string
+          needs_review?: boolean
           options?: Json | null
           pdf_url?: string | null
           proposal_text?: string
