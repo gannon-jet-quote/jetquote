@@ -74,6 +74,7 @@ const App = () => (
               }
             />
             <Route path="/proposal/respond/:token" element={<ProposalRespond />} />
+            <Route path="/request/:username" element={<QuoteRequest />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
