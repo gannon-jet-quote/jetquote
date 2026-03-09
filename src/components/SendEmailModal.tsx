@@ -119,7 +119,7 @@ const SendEmailModal = ({ proposal, open, onOpenChange, onSent, userName }: Prop
       // Save the token to the proposal
       await supabase
         .from("proposals")
-        .update({ public_token: publicToken, status: "sent" } as any)
+        .update({ public_token: publicToken, status: "sent", needs_review: false } as any)
         .eq("id", p.id);
 
       const responseUrl = `${window.location.origin}/proposal/respond/${publicToken}`;

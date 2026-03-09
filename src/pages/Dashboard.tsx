@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Loader2, Plus, Eye, Download, Copy, Trash2, FileText, Files, Mail, Send, DollarSign, TrendingUp, LinkIcon, Pencil } from "lucide-react";
+import { Loader2, Plus, Eye, Download, Copy, Trash2, FileText, Files, Mail, Send, DollarSign, TrendingUp, LinkIcon, Pencil, AlertCircle } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -36,6 +36,7 @@ interface Proposal {
   created_at: string;
   sent_at: string | null;
   status: string;
+  needs_review: boolean;
 }
 
 const statusConfig: Record<string, { label: string; className: string }> = {
@@ -247,6 +248,11 @@ const Dashboard = () => {
                         <span className={`rounded-full border px-2.5 py-0.5 text-xs font-medium ${statusConfig[p.status]?.className || statusConfig.draft.className}`}>
                           {statusConfig[p.status]?.label || "Draft"}
                         </span>
+                        {p.needs_review && (
+                          <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-0.5 text-xs font-medium text-amber-500">
+                            <AlertCircle className="h-3 w-3" /> Needs Review
+                          </span>
+                        )}
                       </div>
                     </div>
                     <div className="flex flex-wrap gap-2">

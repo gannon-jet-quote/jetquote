@@ -63,6 +63,7 @@ Deno.serve(async (req) => {
         tone: "standard",
         proposal_text: "",
         status: "draft",
+        needs_review: true,
         branding: {
           businessName: profile.business_name,
           logoDataUrl: branding?.logo_url || null,

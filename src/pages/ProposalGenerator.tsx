@@ -315,8 +315,8 @@ const ProposalGenerator = () => {
         } as any;
 
         if (editingProposalId) {
-          // Update existing draft
-          await supabase.from("proposals").update(proposalRecord).eq("id", editingProposalId);
+          // Update existing draft and clear needs_review flag
+          await supabase.from("proposals").update({ ...proposalRecord, needs_review: false } as any).eq("id", editingProposalId);
         } else {
           // Insert new proposal
           await supabase.from("proposals").insert({
