@@ -69,8 +69,17 @@ const Dashboard = () => {
 
   const totalValue = proposals.reduce((sum, p) => sum + (Number(p.total_price_number) || 0), 0);
 
+  const acceptedProposals = proposals.filter((p) => p.status === "accepted");
+  const declinedProposals = proposals.filter((p) => p.status === "declined");
+  const respondedCount = acceptedProposals.length + declinedProposals.length;
+  const acceptanceRate = respondedCount > 0 ? (acceptedProposals.length / respondedCount) * 100 : 0;
+  const declineRate = respondedCount > 0 ? (declinedProposals.length / respondedCount) * 100 : 0;
+  const totalAcceptedRevenue = acceptedProposals.reduce((sum, p) => sum + (Number(p.total_price_number) || 0), 0);
+
   const fmtCurrency = (v: number) =>
     v.toLocaleString("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 2 });
+
+  const fmtPct = (v: number) => (v % 1 === 0 ? `${v}%` : `${v.toFixed(1)}%`);
 
   const fetchProposals = async () => {
     const { data, error } = await supabase
