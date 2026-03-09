@@ -55,13 +55,27 @@ const Dashboard = () => {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [emailProposal, setEmailProposal] = useState<Proposal | null>(null);
 
-  const sentThisMonth = (() => {
-    const now = new Date();
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    return proposals.filter(
-      (p) => p.sent_at && new Date(p.sent_at) >= startOfMonth
-    ).length;
-  })();
+  const now = new Date();
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+  const sentThisMonth = proposals.filter(
+    (p) => p.sent_at && new Date(p.sent_at) >= startOfMonth
+  ).length;
+
+  const acceptedThisMonth = proposals.filter(
+    (p) => p.status === "accepted" && p.accepted_at && new Date(p.accepted_at) >= startOfMonth
+  );
+  const declinedThisMonth = proposals.filter(
+    (p) => p.status === "declined" && p.declined_at && new Date(p.declined_at) >= startOfMonth
+  );
+  const respondedThisMonth = acceptedThisMonth.length + declinedThisMonth.length;
+  const acceptanceRateMonth = respondedThisMonth > 0 ? (acceptedThisMonth.length / respondedThisMonth) * 100 : 0;
+  const declineRateMonth = respondedThisMonth > 0 ? (declinedThisMonth.length / respondedThisMonth) * 100 : 0;
+
+  const wonThisMonth = acceptedThisMonth.reduce((sum, p) => sum + (Number(p.total_price_number) || 0), 0);
+
+  const allAccepted = proposals.filter((p) => p.status === "accepted");
+  const wonAllTime = allAccepted.reduce((sum, p) => sum + (Number(p.total_price_number) || 0), 0);
 
   const avgJobValue = proposals.length
     ? proposals.reduce((sum, p) => sum + (Number(p.total_price_number) || 0), 0) / proposals.length
@@ -69,12 +83,7 @@ const Dashboard = () => {
 
   const totalValue = proposals.reduce((sum, p) => sum + (Number(p.total_price_number) || 0), 0);
 
-  const acceptedProposals = proposals.filter((p) => p.status === "accepted");
-  const declinedProposals = proposals.filter((p) => p.status === "declined");
-  const respondedCount = acceptedProposals.length + declinedProposals.length;
-  const acceptanceRate = respondedCount > 0 ? (acceptedProposals.length / respondedCount) * 100 : 0;
-  const declineRate = respondedCount > 0 ? (declinedProposals.length / respondedCount) * 100 : 0;
-  const totalAcceptedRevenue = acceptedProposals.reduce((sum, p) => sum + (Number(p.total_price_number) || 0), 0);
+  const [showMoreMetrics, setShowMoreMetrics] = useState(false);
 
   const fmtCurrency = (v: number) =>
     v.toLocaleString("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 2 });
