@@ -86,7 +86,7 @@ const ProposalGenerator = () => {
   // Apply all saved defaults once both profile and branding have loaded
   // Priority: duplicate data > DB defaults > localStorage > initialForm
   useEffect(() => {
-    if (defaultsApplied || duplicateData) return;
+    if (defaultsApplied || duplicateData || editData) return;
     // Wait for both sources to finish loading
     if (brandingLoading) return;
 
