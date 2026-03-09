@@ -32,6 +32,11 @@ const Settings = () => {
   const [businessPhone, setBusinessPhone] = useState("");
   const [username, setUsername] = useState("");
 
+  // Payment preferences
+  const [paymentMethodName, setPaymentMethodName] = useState("");
+  const [paymentLinkOrInstructions, setPaymentLinkOrInstructions] = useState("");
+  const [paymentNote, setPaymentNote] = useState("");
+
   // Branding fields
   const [logoDataUrl, setLogoDataUrl] = useState<string | null>(null);
   const [tone, setTone] = useState("standard");
@@ -50,6 +55,9 @@ const Settings = () => {
       setTitle(profile.title || "");
       setBusinessPhone(profile.business_phone || "");
       setUsername((profile as any).username || "");
+      setPaymentMethodName((profile as any).payment_method_name || "");
+      setPaymentLinkOrInstructions((profile as any).payment_link_or_instructions || "");
+      setPaymentNote((profile as any).payment_note || "");
     }
   }, [profile]);
 
@@ -99,6 +107,9 @@ const Settings = () => {
           title: title.trim() || null,
           business_phone: businessPhone.trim() || null,
           username: username.trim().toLowerCase() || null,
+          payment_method_name: paymentMethodName.trim() || null,
+          payment_link_or_instructions: paymentLinkOrInstructions.trim() || null,
+          payment_note: paymentNote.trim() || null,
         } as any)
         .eq("user_id", profile!.user_id);
 
@@ -184,6 +195,40 @@ const Settings = () => {
                   <p className="text-xs text-muted-foreground">
                     Your public quote request link: {username ? `${window.location.origin}/request/${username}` : "Set a username to enable"}
                   </p>
+                </div>
+              </div>
+
+              {/* Payment Preferences Section */}
+              <div className="space-y-4 rounded-xl border border-border bg-card p-6">
+                <h2 className="font-display text-lg font-semibold text-foreground">Payment Preferences</h2>
+                <p className="text-xs text-muted-foreground">Set your preferred payment method so you can request payment from clients after completing a job.</p>
+                <div className="space-y-2">
+                  <Label className="text-secondary-foreground">Payment Method Name</Label>
+                  <Input
+                    value={paymentMethodName}
+                    onChange={(e) => setPaymentMethodName(e.target.value)}
+                    placeholder="e.g. Venmo, PayPal, Zelle, Square, Stripe"
+                    className={fieldClass}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-secondary-foreground">Payment Link or Instructions</Label>
+                  <Input
+                    value={paymentLinkOrInstructions}
+                    onChange={(e) => setPaymentLinkOrInstructions(e.target.value)}
+                    placeholder="e.g. https://venmo.com/YourHandle or Zelle: 555-555-5555"
+                    className={fieldClass}
+                  />
+                  <p className="text-xs text-muted-foreground">Enter a payment URL or plain text instructions for your clients.</p>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-secondary-foreground">Payment Note (optional)</Label>
+                  <Input
+                    value={paymentNote}
+                    onChange={(e) => setPaymentNote(e.target.value)}
+                    placeholder="e.g. Deposit required to confirm booking"
+                    className={fieldClass}
+                  />
                 </div>
               </div>
 
