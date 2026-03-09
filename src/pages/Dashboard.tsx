@@ -203,11 +203,12 @@ const Dashboard = () => {
             </div>
           </div>
 
-          <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {[
               { label: "Proposals Sent This Month", value: String(sentThisMonth), icon: Send },
               { label: "Average Job Value All Time", value: fmtCurrency(avgJobValue), icon: TrendingUp },
               { label: "Total Value of Proposals", value: fmtCurrency(totalValue), icon: DollarSign },
+              { label: "Accepted Revenue", value: fmtCurrency(totalAcceptedRevenue), icon: CheckCircle },
             ].map((card) => (
               <div key={card.label} className="rounded-xl border border-border bg-card p-5">
                 <div className="flex items-center gap-3">
@@ -219,6 +220,26 @@ const Dashboard = () => {
                 <p className="mt-3 font-display text-2xl font-bold text-foreground">{card.value}</p>
               </div>
             ))}
+            <div className="rounded-xl border border-border bg-card p-5 sm:col-span-2 lg:col-span-2">
+              <div className="flex items-center gap-3">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
+                  <TrendingUp className="h-4 w-4 text-primary" />
+                </div>
+                <p className="text-sm text-muted-foreground">Acceptance / Decline Rate</p>
+              </div>
+              <div className="mt-3 flex items-baseline gap-6">
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="h-4 w-4 text-green-500" />
+                  <span className="font-display text-2xl font-bold text-foreground">{fmtPct(acceptanceRate)}</span>
+                  <span className="text-sm text-muted-foreground">accepted</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <XCircle className="h-4 w-4 text-destructive" />
+                  <span className="font-display text-2xl font-bold text-foreground">{fmtPct(declineRate)}</span>
+                  <span className="text-sm text-muted-foreground">declined</span>
+                </div>
+              </div>
+            </div>
           </div>
 
           {loading ? (
