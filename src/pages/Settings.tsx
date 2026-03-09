@@ -30,6 +30,7 @@ const Settings = () => {
   const [businessName, setBusinessName] = useState("");
   const [title, setTitle] = useState("");
   const [businessPhone, setBusinessPhone] = useState("");
+  const [username, setUsername] = useState("");
 
   // Branding fields
   const [logoDataUrl, setLogoDataUrl] = useState<string | null>(null);
