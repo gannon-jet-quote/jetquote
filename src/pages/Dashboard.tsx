@@ -248,6 +248,11 @@ const Dashboard = () => {
                         <span className={`rounded-full border px-2.5 py-0.5 text-xs font-medium ${statusConfig[p.status]?.className || statusConfig.draft.className}`}>
                           {statusConfig[p.status]?.label || "Draft"}
                         </span>
+                        {p.needs_review && (
+                          <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-0.5 text-xs font-medium text-amber-500">
+                            <AlertCircle className="h-3 w-3" /> Needs Review
+                          </span>
+                        )}
                       </div>
                     </div>
                     <div className="flex flex-wrap gap-2">
