@@ -171,7 +171,18 @@ const Settings = () => {
                   <div className="space-y-2">
                     <Label className="text-secondary-foreground">Business Phone</Label>
                     <Input value={businessPhone} onChange={(e) => setBusinessPhone(e.target.value)} placeholder="(555) 123-4567" className={fieldClass} />
-                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-secondary-foreground">Quote Request Username</Label>
+                  <Input
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value.replace(/[^a-z0-9-]/gi, "").toLowerCase())}
+                    placeholder="e.g. jetwashpros"
+                    className={fieldClass}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Your public quote request link: {username ? `${window.location.origin}/request/${username}` : "Set a username to enable"}
+                  </p>
                 </div>
               </div>
 
