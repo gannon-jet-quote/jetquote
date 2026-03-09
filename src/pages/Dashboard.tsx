@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Loader2, Plus, Eye, Download, Copy, Trash2, FileText, Files, Mail, Send, DollarSign, TrendingUp, LinkIcon, Pencil, AlertCircle, CheckCircle, XCircle } from "lucide-react";
+import { Loader2, Plus, Eye, Download, Copy, Trash2, FileText, Files, Mail, Send, DollarSign, TrendingUp, LinkIcon, Pencil, AlertCircle, CheckCircle, XCircle, Clock } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -39,6 +39,9 @@ interface Proposal {
   declined_at: string | null;
   status: string;
   needs_review: boolean;
+  followup_enabled: boolean;
+  followup_scheduled_for: string | null;
+  followup_sent_at: string | null;
 }
 
 const statusConfig: Record<string, { label: string; className: string }> = {
@@ -400,6 +403,49 @@ const Dashboard = () => {
                       </AlertDialog>
                     </div>
                   </div>
+
+                  {p.status === "sent" && !p.accepted_at && !p.declined_at && (
+                    <div className="mt-3 flex items-center gap-2">
+                      <button
+                        onClick={async () => {
+                          const newVal = !p.followup_enabled;
+                          await supabase
+                            .from("proposals")
+                            .update({
+                              followup_enabled: newVal,
+                              followup_scheduled_for: newVal && p.sent_at && !p.followup_sent_at
+                                ? new Date(new Date(p.sent_at).getTime() + 48 * 60 * 60 * 1000).toISOString()
+                                : newVal ? p.followup_scheduled_for : null,
+                            } as any)
+                            .eq("id", p.id);
+                          setProposals((prev) =>
+                            prev.map((x) =>
+                              x.id === p.id ? { ...x, followup_enabled: newVal } : x
+                            )
+                          );
+                          toast({ title: newVal ? "Follow-up enabled" : "Follow-up disabled" });
+                        }}
+                        className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        <div
+                          className={`flex h-4 w-4 items-center justify-center rounded border transition-colors ${
+                            p.followup_enabled
+                              ? "border-primary bg-primary text-primary-foreground"
+                              : "border-muted-foreground/40 bg-transparent"
+                          }`}
+                        >
+                          {p.followup_enabled && <CheckCircle className="h-3 w-3" />}
+                        </div>
+                        <Clock className="h-3.5 w-3.5" />
+                        <span>Auto-follow up in 48 hours if no response</span>
+                      </button>
+                      {p.followup_sent_at && (
+                        <span className="ml-2 rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-xs text-primary">
+                          Follow-up sent
+                        </span>
+                      )}
+                    </div>
+                  )}
 
                   {expandedId === p.id && (
                     <motion.div
