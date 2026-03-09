@@ -198,6 +198,40 @@ const Settings = () => {
                 </div>
               </div>
 
+              {/* Payment Preferences Section */}
+              <div className="space-y-4 rounded-xl border border-border bg-card p-6">
+                <h2 className="font-display text-lg font-semibold text-foreground">Payment Preferences</h2>
+                <p className="text-xs text-muted-foreground">Set your preferred payment method so you can request payment from clients after completing a job.</p>
+                <div className="space-y-2">
+                  <Label className="text-secondary-foreground">Payment Method Name</Label>
+                  <Input
+                    value={paymentMethodName}
+                    onChange={(e) => setPaymentMethodName(e.target.value)}
+                    placeholder="e.g. Venmo, PayPal, Zelle, Square, Stripe"
+                    className={fieldClass}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-secondary-foreground">Payment Link or Instructions</Label>
+                  <Input
+                    value={paymentLinkOrInstructions}
+                    onChange={(e) => setPaymentLinkOrInstructions(e.target.value)}
+                    placeholder="e.g. https://venmo.com/YourHandle or Zelle: 555-555-5555"
+                    className={fieldClass}
+                  />
+                  <p className="text-xs text-muted-foreground">Enter a payment URL or plain text instructions for your clients.</p>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-secondary-foreground">Payment Note (optional)</Label>
+                  <Input
+                    value={paymentNote}
+                    onChange={(e) => setPaymentNote(e.target.value)}
+                    placeholder="e.g. Deposit required to confirm booking"
+                    className={fieldClass}
+                  />
+                </div>
+              </div>
+
               {/* Branding Section */}
               <div className="space-y-4 rounded-xl border border-border bg-card p-6">
                 <h2 className="font-display text-lg font-semibold text-foreground">Branding Defaults</h2>
