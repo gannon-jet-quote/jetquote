@@ -149,6 +149,32 @@ const ProposalGenerator = () => {
     }
   }, [duplicateData]);
 
+  // Prefill from edit data
+  useEffect(() => {
+    if (editData) {
+      setForm((prev) => ({
+        ...prev,
+        clientName: editData.clientName || "",
+        clientEmail: editData.clientEmail || "",
+        serviceAddress: editData.serviceAddress || "",
+        serviceType: editData.serviceType || "",
+        jobDescription: editData.jobDescription || "",
+        totalPrice: editData.totalPrice || "",
+        tone: editData.tone || "standard",
+        licensedInsured: editData.licensedInsured ?? false,
+        satisfactionGuarantee: editData.satisfactionGuarantee ?? false,
+        conditionalFields: editData.conditionalFields || {},
+        logoDataUrl: editData.logoDataUrl ?? prev.logoDataUrl,
+        primaryColor: editData.primaryColor ?? prev.primaryColor,
+        secondaryColor: editData.secondaryColor ?? prev.secondaryColor,
+        tertiaryColor: editData.tertiaryColor ?? prev.tertiaryColor,
+        businessName: editData.businessName || prev.businessName,
+        businessPhone: editData.businessPhone || prev.businessPhone,
+        businessEmail: editData.businessEmail || prev.businessEmail,
+      }));
+    }
+  }, [editData]);
+
   // Save business info
   useEffect(() => {
     if (form.businessName || form.businessPhone || form.businessEmail) {
