@@ -35,6 +35,8 @@ interface Proposal {
   options: any;
   created_at: string;
   sent_at: string | null;
+  accepted_at: string | null;
+  declined_at: string | null;
   status: string;
   needs_review: boolean;
 }
