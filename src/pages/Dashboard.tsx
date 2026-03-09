@@ -156,17 +156,31 @@ const Dashboard = () => {
       <Navbar />
       <div className="container mx-auto max-w-4xl px-6 pt-24 pb-16">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-          <div className="mb-8 flex items-center justify-between">
+          <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h1 className="font-display text-3xl font-bold text-foreground">My Proposals</h1>
               <p className="text-muted-foreground">Manage and download your saved proposals.</p>
             </div>
-            <Link
-              to="/generate"
-              className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-all hover:brightness-110 glow-sm"
-            >
-              <Plus className="h-4 w-4" /> New Proposal
-            </Link>
+            <div className="flex flex-wrap gap-2">
+              {profile?.username && (
+                <button
+                  onClick={() => {
+                    const link = `${window.location.origin}/request/${profile.username}`;
+                    navigator.clipboard.writeText(link);
+                    toast({ title: "Quote request link copied!" });
+                  }}
+                  className="inline-flex items-center gap-2 rounded-lg border border-border bg-secondary px-4 py-2.5 text-sm font-medium text-secondary-foreground transition-all hover:bg-accent"
+                >
+                  <LinkIcon className="h-4 w-4" /> Copy Quote Link
+                </button>
+              )}
+              <Link
+                to="/generate"
+                className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-all hover:brightness-110 glow-sm"
+              >
+                <Plus className="h-4 w-4" /> New Proposal
+              </Link>
+            </div>
           </div>
 
           <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
