@@ -55,6 +55,9 @@ const Settings = () => {
       setTitle(profile.title || "");
       setBusinessPhone(profile.business_phone || "");
       setUsername((profile as any).username || "");
+      setPaymentMethodName((profile as any).payment_method_name || "");
+      setPaymentLinkOrInstructions((profile as any).payment_link_or_instructions || "");
+      setPaymentNote((profile as any).payment_note || "");
     }
   }, [profile]);
 
