@@ -527,10 +527,10 @@ const ProposalGenerator = () => {
               {loading ? (
                 <>
                   <Loader2 className="h-5 w-5 animate-spin" />
-                  Generating Proposal...
+                  {editingProposalId ? "Updating Proposal..." : "Generating Proposal..."}
                 </>
               ) : (
-                "Generate Proposal"
+                editingProposalId ? "Update Proposal" : "Generate Proposal"
               )}
             </button>
           </div>
