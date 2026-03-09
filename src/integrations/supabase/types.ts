@@ -105,6 +105,11 @@ export type Database = {
           declined_at: string | null
           email_body: string | null
           email_subject: string | null
+          followup_email_body: string | null
+          followup_email_subject: string | null
+          followup_enabled: boolean
+          followup_scheduled_for: string | null
+          followup_sent_at: string | null
           id: string
           job_description: string
           needs_review: boolean
@@ -133,6 +138,11 @@ export type Database = {
           declined_at?: string | null
           email_body?: string | null
           email_subject?: string | null
+          followup_email_body?: string | null
+          followup_email_subject?: string | null
+          followup_enabled?: boolean
+          followup_scheduled_for?: string | null
+          followup_sent_at?: string | null
           id?: string
           job_description: string
           needs_review?: boolean
@@ -161,6 +171,11 @@ export type Database = {
           declined_at?: string | null
           email_body?: string | null
           email_subject?: string | null
+          followup_email_body?: string | null
+          followup_email_subject?: string | null
+          followup_enabled?: boolean
+          followup_scheduled_for?: string | null
+          followup_sent_at?: string | null
           id?: string
           job_description?: string
           needs_review?: boolean
