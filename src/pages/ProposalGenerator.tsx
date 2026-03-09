@@ -288,8 +288,7 @@ const ProposalGenerator = () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
         const strippedForDb = formattedPrice.replace(/[^0-9.]/g, "");
-        await supabase.from("proposals").insert({
-          user_id: session.user.id,
+        const proposalRecord = {
           client_name: form.clientName,
           client_email: form.clientEmail || null,
           service_type: form.serviceType,
@@ -313,8 +312,19 @@ const ProposalGenerator = () => {
             conditionalFields: form.conditionalFields,
           },
           proposal_text: proposalText,
-          status: "draft",
-        } as any);
+        } as any;
+
+        if (editingProposalId) {
+          // Update existing draft
+          await supabase.from("proposals").update(proposalRecord).eq("id", editingProposalId);
+        } else {
+          // Insert new proposal
+          await supabase.from("proposals").insert({
+            ...proposalRecord,
+            user_id: session.user.id,
+            status: "draft",
+          });
+        }
       }
     } catch (e: any) {
       toast({ title: "Error", description: e.message || "Something went wrong", variant: "destructive" });
