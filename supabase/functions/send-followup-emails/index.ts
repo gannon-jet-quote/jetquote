@@ -84,8 +84,9 @@ Deno.serve(async (req) => {
         const userName = profile.full_name || businessName;
         const businessEmail = p.branding?.businessEmail || "";
 
-        const responseUrl = `https://jet-quote.com/proposal/respond/${p.public_token}`;
-        // We'll use a generic URL pattern; the frontend will handle it
+        // Use the SITE_URL secret or fallback
+        const siteUrl = Deno.env.get("SITE_URL") || "https://jet-quote.com";
+        const responseUrl = `${siteUrl}/proposal/respond/${p.public_token}`;
 
         const subject = `Quick follow-up on your proposal from ${businessName}`;
         const contactLine = businessEmail
