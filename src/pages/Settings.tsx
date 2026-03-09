@@ -49,6 +49,7 @@ const Settings = () => {
       setBusinessName(profile.business_name);
       setTitle(profile.title || "");
       setBusinessPhone(profile.business_phone || "");
+      setUsername((profile as any).username || "");
     }
   }, [profile]);
 
