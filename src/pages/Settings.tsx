@@ -98,7 +98,8 @@ const Settings = () => {
           business_name: businessName.trim(),
           title: title.trim() || null,
           business_phone: businessPhone.trim() || null,
-        })
+          username: username.trim().toLowerCase() || null,
+        } as any)
         .eq("user_id", profile!.user_id);
 
       if (profileErr) throw profileErr;
