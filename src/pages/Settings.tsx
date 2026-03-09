@@ -32,6 +32,11 @@ const Settings = () => {
   const [businessPhone, setBusinessPhone] = useState("");
   const [username, setUsername] = useState("");
 
+  // Payment preferences
+  const [paymentMethodName, setPaymentMethodName] = useState("");
+  const [paymentLinkOrInstructions, setPaymentLinkOrInstructions] = useState("");
+  const [paymentNote, setPaymentNote] = useState("");
+
   // Branding fields
   const [logoDataUrl, setLogoDataUrl] = useState<string | null>(null);
   const [tone, setTone] = useState("standard");
