@@ -39,6 +39,9 @@ interface Proposal {
   declined_at: string | null;
   status: string;
   needs_review: boolean;
+  followup_enabled: boolean;
+  followup_scheduled_for: string | null;
+  followup_sent_at: string | null;
 }
 
 const statusConfig: Record<string, { label: string; className: string }> = {

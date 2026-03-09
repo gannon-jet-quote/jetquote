@@ -115,11 +115,18 @@ const SendEmailModal = ({ proposal, open, onOpenChange, onSent, userName }: Prop
 
       // Generate a unique public token for client response
       const publicToken = crypto.randomUUID();
+      const sentAt = new Date();
+      const followupScheduledFor = new Date(sentAt.getTime() + 48 * 60 * 60 * 1000);
 
-      // Save the token to the proposal
+      // Save the token, status, and schedule follow-up
       await supabase
         .from("proposals")
-        .update({ public_token: publicToken, status: "sent", needs_review: false } as any)
+        .update({
+          public_token: publicToken,
+          status: "sent",
+          needs_review: false,
+          followup_scheduled_for: followupScheduledFor.toISOString(),
+        } as any)
         .eq("id", p.id);
 
       const responseUrl = `${window.location.origin}/proposal/respond/${publicToken}`;
