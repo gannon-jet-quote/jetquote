@@ -370,6 +370,11 @@ const Dashboard = () => {
                             <AlertCircle className="h-3 w-3" /> Needs Review
                           </span>
                         )}
+                        {(p as any).payment_request_sent_at && (
+                          <span className="inline-flex items-center gap-1 rounded-full border border-emerald-600/30 bg-emerald-600/10 px-2.5 py-0.5 text-xs font-medium text-emerald-600">
+                            <BadgeDollarSign className="h-3 w-3" /> Payment Requested
+                          </span>
+                        )}
                       </div>
                     </div>
                     <div className="flex flex-wrap gap-2">
@@ -379,6 +384,22 @@ const Dashboard = () => {
                           className="inline-flex items-center gap-1.5 rounded-lg border border-primary/30 bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-primary/20"
                         >
                           <Pencil className="h-3.5 w-3.5" /> Edit
+                        </button>
+                      )}
+                      {p.status === "accepted" && !p.completed_at && (
+                        <button
+                          onClick={() => handleMarkComplete(p)}
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-600/30 bg-emerald-600/10 px-3 py-1.5 text-xs font-medium text-emerald-600 transition-colors hover:bg-emerald-600/20"
+                        >
+                          <CircleCheckBig className="h-3.5 w-3.5" /> Mark Job Complete
+                        </button>
+                      )}
+                      {(p.status === "completed" || p.completed_at) && (
+                        <button
+                          onClick={() => setPaymentProposal(p)}
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-primary/30 bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-primary/20"
+                        >
+                          <BadgeDollarSign className="h-3.5 w-3.5" /> {(p as any).payment_request_sent_at ? "Resend Payment Request" : "Send Payment Request"}
                         </button>
                       )}
                       <button
@@ -501,6 +522,13 @@ const Dashboard = () => {
         onOpenChange={(open) => !open && setEmailProposal(null)}
         onSent={() => fetchProposals()}
         userName={profile?.full_name || profile?.business_name}
+      />
+      <PaymentRequestModal
+        proposal={paymentProposal}
+        open={!!paymentProposal}
+        onOpenChange={(open) => !open && setPaymentProposal(null)}
+        onSent={() => fetchProposals()}
+        paymentProfile={paymentProfile}
       />
     </div>
   );
