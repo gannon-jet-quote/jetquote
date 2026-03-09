@@ -107,6 +107,9 @@ const Settings = () => {
           title: title.trim() || null,
           business_phone: businessPhone.trim() || null,
           username: username.trim().toLowerCase() || null,
+          payment_method_name: paymentMethodName.trim() || null,
+          payment_link_or_instructions: paymentLinkOrInstructions.trim() || null,
+          payment_note: paymentNote.trim() || null,
         } as any)
         .eq("user_id", profile!.user_id);
 
