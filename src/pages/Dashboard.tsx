@@ -117,7 +117,32 @@ const Dashboard = () => {
 
   useEffect(() => {
     fetchProposals();
-  }, []);
+    if (user) {
+      supabase
+        .from("profiles")
+        .select("first_name, last_name, business_name, business_phone, payment_method_name, payment_link_or_instructions")
+        .eq("user_id", user.id)
+        .maybeSingle()
+        .then(({ data }) => setPaymentProfile(data));
+    }
+  }, [user]);
+
+  const handleMarkComplete = async (p: Proposal) => {
+    const { error } = await supabase
+      .from("proposals")
+      .update({ status: "completed", completed_at: new Date().toISOString() } as any)
+      .eq("id", p.id);
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
+      setProposals((prev) =>
+        prev.map((x) =>
+          x.id === p.id ? { ...x, status: "completed", completed_at: new Date().toISOString() } : x
+        )
+      );
+      toast({ title: "Job marked as completed" });
+    }
+  };
 
   const handleDelete = async (id: string) => {
     const { error } = await supabase.from("proposals").delete().eq("id", id);
