@@ -104,27 +104,37 @@ const Dashboard = () => {
     toast({ title: "Copied to clipboard" });
   };
 
+  const buildProposalState = (p: Proposal) => ({
+    clientName: p.client_name,
+    clientEmail: p.client_email || "",
+    serviceType: p.service_type,
+    serviceAddress: p.service_address,
+    jobDescription: p.job_description || "",
+    totalPrice: p.total_price_formatted,
+    tone: p.tone,
+    logoDataUrl: p.branding?.logoDataUrl || null,
+    primaryColor: p.branding?.primaryColor || null,
+    secondaryColor: p.branding?.secondaryColor || null,
+    tertiaryColor: p.branding?.tertiaryColor || null,
+    businessName: p.branding?.businessName || "",
+    businessPhone: p.branding?.businessPhone || "",
+    businessEmail: p.branding?.businessEmail || "",
+    licensedInsured: p.options?.licensedInsured || false,
+    satisfactionGuarantee: p.options?.satisfactionGuarantee || false,
+    conditionalFields: p.options?.conditionalFields || {},
+  });
+
   const handleDuplicate = (p: Proposal) => {
+    navigate("/generate", { state: { duplicate: buildProposalState(p) } });
+  };
+
+  const handleEdit = (p: Proposal) => {
     navigate("/generate", {
       state: {
-        duplicate: {
-          clientName: p.client_name,
-          clientEmail: p.client_email || "",
-          serviceType: p.service_type,
-          serviceAddress: p.service_address,
-          jobDescription: (p as any).job_description || "",
-          totalPrice: p.total_price_formatted,
-          tone: p.tone,
-          logoDataUrl: p.branding?.logoDataUrl || null,
-          primaryColor: p.branding?.primaryColor || null,
-          secondaryColor: p.branding?.secondaryColor || null,
-          tertiaryColor: p.branding?.tertiaryColor || null,
-          businessName: p.branding?.businessName || "",
-          businessPhone: p.branding?.businessPhone || "",
-          businessEmail: p.branding?.businessEmail || "",
-          licensedInsured: p.options?.licensedInsured || false,
-          satisfactionGuarantee: p.options?.satisfactionGuarantee || false,
-          conditionalFields: p.options?.conditionalFields || {},
+        edit: {
+          proposalId: p.id,
+          proposalText: p.proposal_text,
+          ...buildProposalState(p),
         },
       },
     });
