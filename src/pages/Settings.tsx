@@ -171,6 +171,7 @@ const Settings = () => {
                   <div className="space-y-2">
                     <Label className="text-secondary-foreground">Business Phone</Label>
                     <Input value={businessPhone} onChange={(e) => setBusinessPhone(e.target.value)} placeholder="(555) 123-4567" className={fieldClass} />
+                  </div>
                 </div>
                 <div className="space-y-2">
                   <Label className="text-secondary-foreground">Quote Request Username</Label>
