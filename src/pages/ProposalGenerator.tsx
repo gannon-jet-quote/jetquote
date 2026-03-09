@@ -386,8 +386,8 @@ const ProposalGenerator = () => {
       <Navbar />
       <div className="container mx-auto max-w-2xl px-6 pt-24 pb-16">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-          <h1 className="mb-2 font-display text-3xl font-bold text-foreground">Generate a Proposal</h1>
-          <p className="mb-8 text-muted-foreground">Fill in the details below and let AI craft a professional proposal.</p>
+          <h1 className="mb-2 font-display text-3xl font-bold text-foreground">{editingProposalId ? "Edit Proposal" : "Generate a Proposal"}</h1>
+          <p className="mb-8 text-muted-foreground">{editingProposalId ? "Update the details below and regenerate your proposal." : "Fill in the details below and let AI craft a professional proposal."}</p>
 
           <div className="space-y-8">
             {/* Client Info */}
