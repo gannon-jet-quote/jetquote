@@ -335,6 +335,7 @@ const ProposalGenerator = () => {
 
   const handleReset = () => {
     setProposal(null);
+    setEditingProposalId(null);
     setForm((prev) => ({
       ...initialForm,
       businessName: prev.businessName,
