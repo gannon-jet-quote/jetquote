@@ -65,6 +65,7 @@ export type Database = {
           title: string | null
           updated_at: string
           user_id: string
+          username: string | null
         }
         Insert: {
           business_name?: string
@@ -77,6 +78,7 @@ export type Database = {
           title?: string | null
           updated_at?: string
           user_id: string
+          username?: string | null
         }
         Update: {
           business_name?: string
@@ -89,6 +91,7 @@ export type Database = {
           title?: string | null
           updated_at?: string
           user_id?: string
+          username?: string | null
         }
         Relationships: []
       }
@@ -175,6 +178,53 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      quote_requests: {
+        Row: {
+          client_email: string
+          client_name: string
+          client_phone: string | null
+          created_at: string
+          id: string
+          project_description: string
+          property_address: string
+          proposal_id: string | null
+          service_type: string
+          user_id: string
+        }
+        Insert: {
+          client_email: string
+          client_name: string
+          client_phone?: string | null
+          created_at?: string
+          id?: string
+          project_description: string
+          property_address: string
+          proposal_id?: string | null
+          service_type: string
+          user_id: string
+        }
+        Update: {
+          client_email?: string
+          client_name?: string
+          client_phone?: string | null
+          created_at?: string
+          id?: string
+          project_description?: string
+          property_address?: string
+          proposal_id?: string | null
+          service_type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quote_requests_proposal_id_fkey"
+            columns: ["proposal_id"]
+            isOneToOne: false
+            referencedRelation: "proposals"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

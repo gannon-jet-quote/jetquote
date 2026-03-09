@@ -30,6 +30,7 @@ const Settings = () => {
   const [businessName, setBusinessName] = useState("");
   const [title, setTitle] = useState("");
   const [businessPhone, setBusinessPhone] = useState("");
+  const [username, setUsername] = useState("");
 
   // Branding fields
   const [logoDataUrl, setLogoDataUrl] = useState<string | null>(null);
@@ -48,6 +49,7 @@ const Settings = () => {
       setBusinessName(profile.business_name);
       setTitle(profile.title || "");
       setBusinessPhone(profile.business_phone || "");
+      setUsername((profile as any).username || "");
     }
   }, [profile]);
 
@@ -96,7 +98,8 @@ const Settings = () => {
           business_name: businessName.trim(),
           title: title.trim() || null,
           business_phone: businessPhone.trim() || null,
-        })
+          username: username.trim().toLowerCase() || null,
+        } as any)
         .eq("user_id", profile!.user_id);
 
       if (profileErr) throw profileErr;
@@ -169,6 +172,18 @@ const Settings = () => {
                     <Label className="text-secondary-foreground">Business Phone</Label>
                     <Input value={businessPhone} onChange={(e) => setBusinessPhone(e.target.value)} placeholder="(555) 123-4567" className={fieldClass} />
                   </div>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-secondary-foreground">Quote Request Username</Label>
+                  <Input
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value.replace(/[^a-z0-9-]/gi, "").toLowerCase())}
+                    placeholder="e.g. jetwashpros"
+                    className={fieldClass}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Your public quote request link: {username ? `${window.location.origin}/request/${username}` : "Set a username to enable"}
+                  </p>
                 </div>
               </div>
 
