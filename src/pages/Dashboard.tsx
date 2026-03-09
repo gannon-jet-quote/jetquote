@@ -36,6 +36,7 @@ interface Proposal {
   created_at: string;
   sent_at: string | null;
   status: string;
+  needs_review: boolean;
 }
 
 const statusConfig: Record<string, { label: string; className: string }> = {
