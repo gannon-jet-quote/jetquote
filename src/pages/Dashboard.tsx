@@ -250,6 +250,14 @@ const Dashboard = () => {
                       </div>
                     </div>
                     <div className="flex flex-wrap gap-2">
+                      {p.status === "draft" && (
+                        <button
+                          onClick={() => handleEdit(p)}
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-primary/30 bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-primary/20"
+                        >
+                          <Pencil className="h-3.5 w-3.5" /> Edit
+                        </button>
+                      )}
                       <button
                         onClick={() => setExpandedId(expandedId === p.id ? null : p.id)}
                         className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-secondary px-3 py-1.5 text-xs font-medium text-secondary-foreground transition-colors hover:bg-accent"
