@@ -75,16 +75,18 @@ const ProposalGenerator = () => {
   const { user, profile } = useAuth();
   const { settings: brandingDefaults, loading: brandingLoading } = useBrandingSettings();
   const duplicateData = (location.state as any)?.duplicate || null;
+  const editData = (location.state as any)?.edit || null;
+  const [editingProposalId, setEditingProposalId] = useState<string | null>(editData?.proposalId || null);
   const [form, setForm] = useState<FormData>(initialForm);
   const [loading, setLoading] = useState(false);
-  const [proposal, setProposal] = useState<string | null>(null);
+  const [proposal, setProposal] = useState<string | null>(editData?.proposalText || null);
   const [defaultsApplied, setDefaultsApplied] = useState(false);
   const { toast } = useToast();
 
   // Apply all saved defaults once both profile and branding have loaded
   // Priority: duplicate data > DB defaults > localStorage > initialForm
   useEffect(() => {
-    if (defaultsApplied || duplicateData) return;
+    if (defaultsApplied || duplicateData || editData) return;
     // Wait for both sources to finish loading
     if (brandingLoading) return;
 
@@ -146,6 +148,32 @@ const ProposalGenerator = () => {
       }));
     }
   }, [duplicateData]);
+
+  // Prefill from edit data
+  useEffect(() => {
+    if (editData) {
+      setForm((prev) => ({
+        ...prev,
+        clientName: editData.clientName || "",
+        clientEmail: editData.clientEmail || "",
+        serviceAddress: editData.serviceAddress || "",
+        serviceType: editData.serviceType || "",
+        jobDescription: editData.jobDescription || "",
+        totalPrice: editData.totalPrice || "",
+        tone: editData.tone || "standard",
+        licensedInsured: editData.licensedInsured ?? false,
+        satisfactionGuarantee: editData.satisfactionGuarantee ?? false,
+        conditionalFields: editData.conditionalFields || {},
+        logoDataUrl: editData.logoDataUrl ?? prev.logoDataUrl,
+        primaryColor: editData.primaryColor ?? prev.primaryColor,
+        secondaryColor: editData.secondaryColor ?? prev.secondaryColor,
+        tertiaryColor: editData.tertiaryColor ?? prev.tertiaryColor,
+        businessName: editData.businessName || prev.businessName,
+        businessPhone: editData.businessPhone || prev.businessPhone,
+        businessEmail: editData.businessEmail || prev.businessEmail,
+      }));
+    }
+  }, [editData]);
 
   // Save business info
   useEffect(() => {
@@ -260,8 +288,7 @@ const ProposalGenerator = () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
         const strippedForDb = formattedPrice.replace(/[^0-9.]/g, "");
-        await supabase.from("proposals").insert({
-          user_id: session.user.id,
+        const proposalRecord = {
           client_name: form.clientName,
           client_email: form.clientEmail || null,
           service_type: form.serviceType,
@@ -285,8 +312,19 @@ const ProposalGenerator = () => {
             conditionalFields: form.conditionalFields,
           },
           proposal_text: proposalText,
-          status: "draft",
-        } as any);
+        } as any;
+
+        if (editingProposalId) {
+          // Update existing draft
+          await supabase.from("proposals").update(proposalRecord).eq("id", editingProposalId);
+        } else {
+          // Insert new proposal
+          await supabase.from("proposals").insert({
+            ...proposalRecord,
+            user_id: session.user.id,
+            status: "draft",
+          });
+        }
       }
     } catch (e: any) {
       toast({ title: "Error", description: e.message || "Something went wrong", variant: "destructive" });
@@ -297,6 +335,7 @@ const ProposalGenerator = () => {
 
   const handleReset = () => {
     setProposal(null);
+    setEditingProposalId(null);
     setForm((prev) => ({
       ...initialForm,
       businessName: prev.businessName,
@@ -347,8 +386,8 @@ const ProposalGenerator = () => {
       <Navbar />
       <div className="container mx-auto max-w-2xl px-6 pt-24 pb-16">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-          <h1 className="mb-2 font-display text-3xl font-bold text-foreground">Generate a Proposal</h1>
-          <p className="mb-8 text-muted-foreground">Fill in the details below and let AI craft a professional proposal.</p>
+          <h1 className="mb-2 font-display text-3xl font-bold text-foreground">{editingProposalId ? "Edit Proposal" : "Generate a Proposal"}</h1>
+          <p className="mb-8 text-muted-foreground">{editingProposalId ? "Update the details below and regenerate your proposal." : "Fill in the details below and let AI craft a professional proposal."}</p>
 
           <div className="space-y-8">
             {/* Client Info */}
@@ -488,10 +527,10 @@ const ProposalGenerator = () => {
               {loading ? (
                 <>
                   <Loader2 className="h-5 w-5 animate-spin" />
-                  Generating Proposal...
+                  {editingProposalId ? "Updating Proposal..." : "Generating Proposal..."}
                 </>
               ) : (
-                "Generate Proposal"
+                editingProposalId ? "Update Proposal" : "Generate Proposal"
               )}
             </button>
           </div>

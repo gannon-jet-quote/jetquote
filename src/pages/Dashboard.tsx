@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Loader2, Plus, Eye, Download, Copy, Trash2, FileText, Files, Mail, Send, DollarSign, TrendingUp, LinkIcon } from "lucide-react";
+import { Loader2, Plus, Eye, Download, Copy, Trash2, FileText, Files, Mail, Send, DollarSign, TrendingUp, LinkIcon, Pencil } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -104,27 +104,37 @@ const Dashboard = () => {
     toast({ title: "Copied to clipboard" });
   };
 
+  const buildProposalState = (p: Proposal) => ({
+    clientName: p.client_name,
+    clientEmail: p.client_email || "",
+    serviceType: p.service_type,
+    serviceAddress: p.service_address,
+    jobDescription: p.job_description || "",
+    totalPrice: p.total_price_formatted,
+    tone: p.tone,
+    logoDataUrl: p.branding?.logoDataUrl || null,
+    primaryColor: p.branding?.primaryColor || null,
+    secondaryColor: p.branding?.secondaryColor || null,
+    tertiaryColor: p.branding?.tertiaryColor || null,
+    businessName: p.branding?.businessName || "",
+    businessPhone: p.branding?.businessPhone || "",
+    businessEmail: p.branding?.businessEmail || "",
+    licensedInsured: p.options?.licensedInsured || false,
+    satisfactionGuarantee: p.options?.satisfactionGuarantee || false,
+    conditionalFields: p.options?.conditionalFields || {},
+  });
+
   const handleDuplicate = (p: Proposal) => {
+    navigate("/generate", { state: { duplicate: buildProposalState(p) } });
+  };
+
+  const handleEdit = (p: Proposal) => {
     navigate("/generate", {
       state: {
-        duplicate: {
-          clientName: p.client_name,
-          clientEmail: p.client_email || "",
-          serviceType: p.service_type,
-          serviceAddress: p.service_address,
-          jobDescription: (p as any).job_description || "",
-          totalPrice: p.total_price_formatted,
-          tone: p.tone,
-          logoDataUrl: p.branding?.logoDataUrl || null,
-          primaryColor: p.branding?.primaryColor || null,
-          secondaryColor: p.branding?.secondaryColor || null,
-          tertiaryColor: p.branding?.tertiaryColor || null,
-          businessName: p.branding?.businessName || "",
-          businessPhone: p.branding?.businessPhone || "",
-          businessEmail: p.branding?.businessEmail || "",
-          licensedInsured: p.options?.licensedInsured || false,
-          satisfactionGuarantee: p.options?.satisfactionGuarantee || false,
-          conditionalFields: p.options?.conditionalFields || {},
+        edit: {
+          proposalId: p.id,
+          proposalText: p.proposal_text,
+          ...buildProposalState(p),
         },
       },
     });
@@ -240,6 +250,14 @@ const Dashboard = () => {
                       </div>
                     </div>
                     <div className="flex flex-wrap gap-2">
+                      {p.status === "draft" && (
+                        <button
+                          onClick={() => handleEdit(p)}
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-primary/30 bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-primary/20"
+                        >
+                          <Pencil className="h-3.5 w-3.5" /> Edit
+                        </button>
+                      )}
                       <button
                         onClick={() => setExpandedId(expandedId === p.id ? null : p.id)}
                         className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-secondary px-3 py-1.5 text-xs font-medium text-secondary-foreground transition-colors hover:bg-accent"
