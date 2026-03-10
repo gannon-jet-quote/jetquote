@@ -379,9 +379,19 @@ const Dashboard = () => {
                             <AlertCircle className="h-3 w-3" /> Needs Review
                           </span>
                         )}
-                        {(p as any).payment_request_sent_at && (
+                        {(p as any).payment_request_sent_at && (p as any).payment_status !== "paid" && (
                           <span className="inline-flex items-center gap-1 rounded-full border border-emerald-600/30 bg-emerald-600/10 px-2.5 py-0.5 text-xs font-medium text-emerald-600">
                             <BadgeDollarSign className="h-3 w-3" /> Payment Requested
+                          </span>
+                        )}
+                        {(p as any).payment_status === "paid" && (
+                          <span className="inline-flex items-center gap-1 rounded-full border border-green-600/30 bg-green-600/10 px-2.5 py-0.5 text-xs font-medium text-green-600">
+                            <CheckCircle className="h-3 w-3" /> Paid {(p as any).payment_received_at ? `· ${new Date((p as any).payment_received_at).toLocaleDateString()}` : ""}
+                          </span>
+                        )}
+                        {(p as any).review_request_sent_at && (
+                          <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-0.5 text-xs font-medium text-amber-500">
+                            <Star className="h-3 w-3" /> Review Requested
                           </span>
                         )}
                       </div>
