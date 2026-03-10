@@ -153,6 +153,23 @@ const Dashboard = () => {
     }
   };
 
+  const handleMarkPaymentReceived = async (p: Proposal) => {
+    const { error } = await supabase
+      .from("proposals")
+      .update({ payment_status: "paid", payment_received_at: new Date().toISOString() } as any)
+      .eq("id", p.id);
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
+      setProposals((prev) =>
+        prev.map((x) =>
+          x.id === p.id ? { ...x, payment_status: "paid", payment_received_at: new Date().toISOString() } as any : x
+        )
+      );
+      toast({ title: "Payment marked as received" });
+    }
+  };
+
   const handleDelete = async (id: string) => {
     const { error } = await supabase.from("proposals").delete().eq("id", id);
     if (error) {
