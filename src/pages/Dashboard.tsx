@@ -582,6 +582,13 @@ const Dashboard = () => {
         onSent={() => fetchProposals()}
         paymentProfile={paymentProfile}
       />
+      <ReviewRequestModal
+        proposal={reviewProposal}
+        open={!!reviewProposal}
+        onOpenChange={(open) => !open && setReviewProposal(null)}
+        onSent={() => fetchProposals()}
+        reviewProfile={reviewProfile}
+      />
     </div>
   );
 };
