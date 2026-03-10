@@ -413,12 +413,28 @@ const Dashboard = () => {
                           <CircleCheckBig className="h-3.5 w-3.5" /> Mark Job Complete
                         </button>
                       )}
-                      {(p.status === "completed" || p.completed_at) && (
+                      {(p.status === "completed" || p.completed_at) && (p as any).payment_status !== "paid" && (
                         <button
                           onClick={() => setPaymentProposal(p)}
                           className="inline-flex items-center gap-1.5 rounded-lg border border-primary/30 bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-primary/20"
                         >
                           <BadgeDollarSign className="h-3.5 w-3.5" /> {(p as any).payment_request_sent_at ? "Resend Payment Request" : "Send Payment Request"}
+                        </button>
+                      )}
+                      {(p as any).payment_status === "requested" && (
+                        <button
+                          onClick={() => handleMarkPaymentReceived(p)}
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-green-600/30 bg-green-600/10 px-3 py-1.5 text-xs font-medium text-green-600 transition-colors hover:bg-green-600/20"
+                        >
+                          <CheckCircle className="h-3.5 w-3.5" /> Mark Payment Received
+                        </button>
+                      )}
+                      {(p as any).payment_status === "paid" && (
+                        <button
+                          onClick={() => setReviewProposal(p)}
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-1.5 text-xs font-medium text-amber-500 transition-colors hover:bg-amber-500/20"
+                        >
+                          <Star className="h-3.5 w-3.5" /> {(p as any).review_request_sent_at ? "Resend Review Request" : "Send Review Request"}
                         </button>
                       )}
                       <button
