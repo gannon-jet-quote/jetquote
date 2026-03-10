@@ -64,6 +64,9 @@ export type Database = {
           payment_link_or_instructions: string | null
           payment_method_name: string | null
           payment_note: string | null
+          review_link: string | null
+          review_platform: string | null
+          review_signature_name: string | null
           role: string
           title: string | null
           updated_at: string
@@ -80,6 +83,9 @@ export type Database = {
           payment_link_or_instructions?: string | null
           payment_method_name?: string | null
           payment_note?: string | null
+          review_link?: string | null
+          review_platform?: string | null
+          review_signature_name?: string | null
           role?: string
           title?: string | null
           updated_at?: string
@@ -96,6 +102,9 @@ export type Database = {
           payment_link_or_instructions?: string | null
           payment_method_name?: string | null
           payment_note?: string | null
+          review_link?: string | null
+          review_platform?: string | null
+          review_signature_name?: string | null
           role?: string
           title?: string | null
           updated_at?: string
@@ -124,14 +133,20 @@ export type Database = {
           job_description: string
           needs_review: boolean
           options: Json | null
+          payment_received_at: string | null
           payment_request_body: string | null
           payment_request_sent_at: string | null
           payment_request_sent_to: string | null
           payment_request_subject: string | null
+          payment_status: string
           pdf_url: string | null
           proposal_text: string
           public_token: string | null
           responded_at: string | null
+          review_request_body: string | null
+          review_request_sent_at: string | null
+          review_request_sent_to: string | null
+          review_request_subject: string | null
           sent_at: string | null
           sent_to: string | null
           service_address: string
@@ -162,14 +177,20 @@ export type Database = {
           job_description: string
           needs_review?: boolean
           options?: Json | null
+          payment_received_at?: string | null
           payment_request_body?: string | null
           payment_request_sent_at?: string | null
           payment_request_sent_to?: string | null
           payment_request_subject?: string | null
+          payment_status?: string
           pdf_url?: string | null
           proposal_text: string
           public_token?: string | null
           responded_at?: string | null
+          review_request_body?: string | null
+          review_request_sent_at?: string | null
+          review_request_sent_to?: string | null
+          review_request_subject?: string | null
           sent_at?: string | null
           sent_to?: string | null
           service_address: string
@@ -200,14 +221,20 @@ export type Database = {
           job_description?: string
           needs_review?: boolean
           options?: Json | null
+          payment_received_at?: string | null
           payment_request_body?: string | null
           payment_request_sent_at?: string | null
           payment_request_sent_to?: string | null
           payment_request_subject?: string | null
+          payment_status?: string
           pdf_url?: string | null
           proposal_text?: string
           public_token?: string | null
           responded_at?: string | null
+          review_request_body?: string | null
+          review_request_sent_at?: string | null
+          review_request_sent_to?: string | null
+          review_request_subject?: string | null
           sent_at?: string | null
           sent_to?: string | null
           service_address?: string
