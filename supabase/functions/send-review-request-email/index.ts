@@ -90,15 +90,14 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Update proposal with payment request tracking + set payment_status
+    // Update proposal with review request tracking
     await supabase
       .from("proposals")
       .update({
-        payment_request_sent_at: new Date().toISOString(),
-        payment_request_sent_to: to,
-        payment_request_subject: subject,
-        payment_request_body: body,
-        payment_status: "requested",
+        review_request_sent_at: new Date().toISOString(),
+        review_request_sent_to: to,
+        review_request_subject: subject,
+        review_request_body: body,
       })
       .eq("id", proposalId);
 
@@ -107,7 +106,7 @@ Deno.serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err: unknown) {
-    console.error("send-payment-request-email error:", err);
+    console.error("send-review-request-email error:", err);
     const msg = err instanceof Error ? err.message : "Unknown error";
     return new Response(JSON.stringify({ error: msg }), {
       status: 500,
