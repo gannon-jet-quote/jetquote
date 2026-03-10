@@ -20,3 +20,6 @@ verify_jwt = false
 
 [functions.send-payment-request-email]
 verify_jwt = false
+
+[functions.send-review-request-email]
+verify_jwt = false

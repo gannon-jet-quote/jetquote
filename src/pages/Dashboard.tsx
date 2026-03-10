@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Loader2, Plus, Eye, Download, Copy, Trash2, FileText, Files, Mail, Send, DollarSign, TrendingUp, LinkIcon, Pencil, AlertCircle, CheckCircle, XCircle, Clock, BadgeDollarSign, CircleCheckBig } from "lucide-react";
+import { Loader2, Plus, Eye, Download, Copy, Trash2, FileText, Files, Mail, Send, DollarSign, TrendingUp, LinkIcon, Pencil, AlertCircle, CheckCircle, XCircle, Clock, BadgeDollarSign, CircleCheckBig, Star } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import SendEmailModal from "@/components/SendEmailModal";
 import PaymentRequestModal from "@/components/PaymentRequestModal";
+import ReviewRequestModal from "@/components/ReviewRequestModal";
 
 interface Proposal {
   id: string;
@@ -45,6 +46,9 @@ interface Proposal {
   followup_sent_at: string | null;
   completed_at: string | null;
   payment_request_sent_at: string | null;
+  payment_status: string;
+  payment_received_at: string | null;
+  review_request_sent_at: string | null;
 }
 
 const statusConfig: Record<string, { label: string; className: string }> = {
@@ -64,7 +68,9 @@ const Dashboard = () => {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [emailProposal, setEmailProposal] = useState<Proposal | null>(null);
   const [paymentProposal, setPaymentProposal] = useState<Proposal | null>(null);
+  const [reviewProposal, setReviewProposal] = useState<Proposal | null>(null);
   const [paymentProfile, setPaymentProfile] = useState<any>(null);
+  const [reviewProfile, setReviewProfile] = useState<any>(null);
 
   const now = new Date();
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -120,10 +126,13 @@ const Dashboard = () => {
     if (user) {
       supabase
         .from("profiles")
-        .select("first_name, last_name, business_name, business_phone, payment_method_name, payment_link_or_instructions")
+        .select("first_name, last_name, business_name, business_phone, payment_method_name, payment_link_or_instructions, review_platform, review_link, review_signature_name")
         .eq("user_id", user.id)
         .maybeSingle()
-        .then(({ data }) => setPaymentProfile(data));
+        .then(({ data }) => {
+          setPaymentProfile(data);
+          setReviewProfile(data);
+        });
     }
   }, [user]);
 
@@ -141,6 +150,23 @@ const Dashboard = () => {
         )
       );
       toast({ title: "Job marked as completed" });
+    }
+  };
+
+  const handleMarkPaymentReceived = async (p: Proposal) => {
+    const { error } = await supabase
+      .from("proposals")
+      .update({ payment_status: "paid", payment_received_at: new Date().toISOString() } as any)
+      .eq("id", p.id);
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
+      setProposals((prev) =>
+        prev.map((x) =>
+          x.id === p.id ? { ...x, payment_status: "paid", payment_received_at: new Date().toISOString() } as any : x
+        )
+      );
+      toast({ title: "Payment marked as received" });
     }
   };
 
@@ -370,9 +396,19 @@ const Dashboard = () => {
                             <AlertCircle className="h-3 w-3" /> Needs Review
                           </span>
                         )}
-                        {(p as any).payment_request_sent_at && (
+                        {(p as any).payment_request_sent_at && (p as any).payment_status !== "paid" && (
                           <span className="inline-flex items-center gap-1 rounded-full border border-emerald-600/30 bg-emerald-600/10 px-2.5 py-0.5 text-xs font-medium text-emerald-600">
                             <BadgeDollarSign className="h-3 w-3" /> Payment Requested
+                          </span>
+                        )}
+                        {(p as any).payment_status === "paid" && (
+                          <span className="inline-flex items-center gap-1 rounded-full border border-green-600/30 bg-green-600/10 px-2.5 py-0.5 text-xs font-medium text-green-600">
+                            <CheckCircle className="h-3 w-3" /> Paid {(p as any).payment_received_at ? `· ${new Date((p as any).payment_received_at).toLocaleDateString()}` : ""}
+                          </span>
+                        )}
+                        {(p as any).review_request_sent_at && (
+                          <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-0.5 text-xs font-medium text-amber-500">
+                            <Star className="h-3 w-3" /> Review Requested
                           </span>
                         )}
                       </div>
@@ -394,12 +430,28 @@ const Dashboard = () => {
                           <CircleCheckBig className="h-3.5 w-3.5" /> Mark Job Complete
                         </button>
                       )}
-                      {(p.status === "completed" || p.completed_at) && (
+                      {(p.status === "completed" || p.completed_at) && (p as any).payment_status !== "paid" && (
                         <button
                           onClick={() => setPaymentProposal(p)}
                           className="inline-flex items-center gap-1.5 rounded-lg border border-primary/30 bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-primary/20"
                         >
                           <BadgeDollarSign className="h-3.5 w-3.5" /> {(p as any).payment_request_sent_at ? "Resend Payment Request" : "Send Payment Request"}
+                        </button>
+                      )}
+                      {(p as any).payment_status === "requested" && (
+                        <button
+                          onClick={() => handleMarkPaymentReceived(p)}
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-green-600/30 bg-green-600/10 px-3 py-1.5 text-xs font-medium text-green-600 transition-colors hover:bg-green-600/20"
+                        >
+                          <CheckCircle className="h-3.5 w-3.5" /> Mark Payment Received
+                        </button>
+                      )}
+                      {(p as any).payment_status === "paid" && (
+                        <button
+                          onClick={() => setReviewProposal(p)}
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-1.5 text-xs font-medium text-amber-500 transition-colors hover:bg-amber-500/20"
+                        >
+                          <Star className="h-3.5 w-3.5" /> {(p as any).review_request_sent_at ? "Resend Review Request" : "Send Review Request"}
                         </button>
                       )}
                       <button
@@ -529,6 +581,13 @@ const Dashboard = () => {
         onOpenChange={(open) => !open && setPaymentProposal(null)}
         onSent={() => fetchProposals()}
         paymentProfile={paymentProfile}
+      />
+      <ReviewRequestModal
+        proposal={reviewProposal}
+        open={!!reviewProposal}
+        onOpenChange={(open) => !open && setReviewProposal(null)}
+        onSent={() => fetchProposals()}
+        reviewProfile={reviewProfile}
       />
     </div>
   );
