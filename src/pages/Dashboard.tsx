@@ -56,7 +56,6 @@ const statusConfig: Record<string, { label: string; className: string }> = {
   sent: { label: "Sent", className: "border-primary/30 bg-primary/10 text-primary" },
   accepted: { label: "Accepted", className: "border-green-500/30 bg-green-500/10 text-green-500" },
   declined: { label: "Declined", className: "border-destructive/30 bg-destructive/10 text-destructive" },
-  completed: { label: "Completed", className: "border-emerald-600/30 bg-emerald-600/10 text-emerald-600" },
 };
 
 const Dashboard = () => {
