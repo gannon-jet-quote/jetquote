@@ -429,7 +429,7 @@ const Dashboard = () => {
                           <CircleCheckBig className="h-3.5 w-3.5" /> Mark Job Complete
                         </button>
                       )}
-                      {(p.status === "completed" || p.completed_at) && (p as any).payment_status !== "paid" && (
+                      {p.completed_at && (p as any).payment_status !== "paid" && (
                         <button
                           onClick={() => setPaymentProposal(p)}
                           className="inline-flex items-center gap-1.5 rounded-lg border border-primary/30 bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-primary/20"
