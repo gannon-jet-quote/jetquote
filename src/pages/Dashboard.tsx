@@ -80,10 +80,10 @@ const Dashboard = () => {
   ).length;
 
   const acceptedThisMonth = proposals.filter(
-    (p) => p.status === "accepted" && p.accepted_at && new Date(p.accepted_at) >= startOfMonth
+    (p) => (p.accepted_at || p.status === "accepted") && p.accepted_at && new Date(p.accepted_at) >= startOfMonth
   );
   const declinedThisMonth = proposals.filter(
-    (p) => p.status === "declined" && p.declined_at && new Date(p.declined_at) >= startOfMonth
+    (p) => (p.declined_at || p.status === "declined") && p.declined_at && new Date(p.declined_at) >= startOfMonth
   );
   const respondedThisMonth = acceptedThisMonth.length + declinedThisMonth.length;
   const acceptanceRateMonth = respondedThisMonth > 0 ? (acceptedThisMonth.length / respondedThisMonth) * 100 : 0;
@@ -91,7 +91,7 @@ const Dashboard = () => {
 
   const wonThisMonth = acceptedThisMonth.reduce((sum, p) => sum + (Number(p.total_price_number) || 0), 0);
 
-  const allAccepted = proposals.filter((p) => p.status === "accepted");
+  const allAccepted = proposals.filter((p) => p.accepted_at != null || p.status === "accepted");
   const wonAllTime = allAccepted.reduce((sum, p) => sum + (Number(p.total_price_number) || 0), 0);
 
   const avgJobValue = proposals.length
