@@ -243,6 +243,46 @@ const Settings = () => {
                 </div>
               </div>
 
+              {/* Review Preferences Section */}
+              <div className="space-y-4 rounded-xl border border-border bg-card p-6">
+                <h2 className="font-display text-lg font-semibold text-foreground">Review Preferences</h2>
+                <p className="text-xs text-muted-foreground">Set your review link so you can request reviews from clients after receiving payment.</p>
+                <div className="space-y-2">
+                  <Label className="text-secondary-foreground">Review Platform</Label>
+                  <Select value={reviewPlatform} onValueChange={setReviewPlatform}>
+                    <SelectTrigger className={fieldClass}>
+                      <SelectValue placeholder="Select a platform" />
+                    </SelectTrigger>
+                    <SelectContent className="border-border bg-card text-foreground">
+                      <SelectItem value="Google">Google</SelectItem>
+                      <SelectItem value="Facebook">Facebook</SelectItem>
+                      <SelectItem value="Yelp">Yelp</SelectItem>
+                      <SelectItem value="Other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-secondary-foreground">Review Link</Label>
+                  <Input
+                    value={reviewLink}
+                    onChange={(e) => setReviewLink(e.target.value)}
+                    placeholder="e.g. https://g.page/r/YOUR-ID/review"
+                    className={fieldClass}
+                  />
+                  <p className="text-xs text-muted-foreground">Required to send review requests. Paste your Google, Facebook, Yelp, or other review URL.</p>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-secondary-foreground">Review Signature Name (optional)</Label>
+                  <Input
+                    value={reviewSignatureName}
+                    onChange={(e) => setReviewSignatureName(e.target.value)}
+                    placeholder="e.g. The JetWash Team"
+                    className={fieldClass}
+                  />
+                  <p className="text-xs text-muted-foreground">Override the sign-off name in review request emails. Defaults to your first and last name.</p>
+                </div>
+              </div>
+
               {/* Branding Section */}
               <div className="space-y-4 rounded-xl border border-border bg-card p-6">
                 <h2 className="font-display text-lg font-semibold text-foreground">Branding Defaults</h2>
