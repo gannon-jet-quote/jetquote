@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import SendEmailModal from "@/components/SendEmailModal";
 import PaymentRequestModal from "@/components/PaymentRequestModal";
+import ReviewRequestModal from "@/components/ReviewRequestModal";
 
 interface Proposal {
   id: string;
