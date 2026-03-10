@@ -68,7 +68,9 @@ const Dashboard = () => {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [emailProposal, setEmailProposal] = useState<Proposal | null>(null);
   const [paymentProposal, setPaymentProposal] = useState<Proposal | null>(null);
+  const [reviewProposal, setReviewProposal] = useState<Proposal | null>(null);
   const [paymentProfile, setPaymentProfile] = useState<any>(null);
+  const [reviewProfile, setReviewProfile] = useState<any>(null);
 
   const now = new Date();
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
