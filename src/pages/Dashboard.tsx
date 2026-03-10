@@ -139,14 +139,14 @@ const Dashboard = () => {
   const handleMarkComplete = async (p: Proposal) => {
     const { error } = await supabase
       .from("proposals")
-      .update({ status: "completed", completed_at: new Date().toISOString() } as any)
+      .update({ completed_at: new Date().toISOString() } as any)
       .eq("id", p.id);
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } else {
       setProposals((prev) =>
         prev.map((x) =>
-          x.id === p.id ? { ...x, status: "completed", completed_at: new Date().toISOString() } : x
+          x.id === p.id ? { ...x, completed_at: new Date().toISOString() } : x
         )
       );
       toast({ title: "Job marked as completed" });
