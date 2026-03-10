@@ -63,6 +63,9 @@ const Settings = () => {
       setPaymentMethodName((profile as any).payment_method_name || "");
       setPaymentLinkOrInstructions((profile as any).payment_link_or_instructions || "");
       setPaymentNote((profile as any).payment_note || "");
+      setReviewPlatform((profile as any).review_platform || "");
+      setReviewLink((profile as any).review_link || "");
+      setReviewSignatureName((profile as any).review_signature_name || "");
     }
   }, [profile]);
 
