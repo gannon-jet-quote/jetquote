@@ -118,6 +118,9 @@ const Settings = () => {
           payment_method_name: paymentMethodName.trim() || null,
           payment_link_or_instructions: paymentLinkOrInstructions.trim() || null,
           payment_note: paymentNote.trim() || null,
+          review_platform: reviewPlatform.trim() || null,
+          review_link: reviewLink.trim() || null,
+          review_signature_name: reviewSignatureName.trim() || null,
         } as any)
         .eq("user_id", profile!.user_id);
 
