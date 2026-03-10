@@ -46,6 +46,9 @@ interface Proposal {
   followup_sent_at: string | null;
   completed_at: string | null;
   payment_request_sent_at: string | null;
+  payment_status: string;
+  payment_received_at: string | null;
+  review_request_sent_at: string | null;
 }
 
 const statusConfig: Record<string, { label: string; className: string }> = {
