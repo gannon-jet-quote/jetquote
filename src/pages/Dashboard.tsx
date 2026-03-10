@@ -56,7 +56,6 @@ const statusConfig: Record<string, { label: string; className: string }> = {
   sent: { label: "Sent", className: "border-primary/30 bg-primary/10 text-primary" },
   accepted: { label: "Accepted", className: "border-green-500/30 bg-green-500/10 text-green-500" },
   declined: { label: "Declined", className: "border-destructive/30 bg-destructive/10 text-destructive" },
-  completed: { label: "Completed", className: "border-emerald-600/30 bg-emerald-600/10 text-emerald-600" },
 };
 
 const Dashboard = () => {
@@ -80,10 +79,10 @@ const Dashboard = () => {
   ).length;
 
   const acceptedThisMonth = proposals.filter(
-    (p) => p.status === "accepted" && p.accepted_at && new Date(p.accepted_at) >= startOfMonth
+    (p) => (p.accepted_at || p.status === "accepted") && p.accepted_at && new Date(p.accepted_at) >= startOfMonth
   );
   const declinedThisMonth = proposals.filter(
-    (p) => p.status === "declined" && p.declined_at && new Date(p.declined_at) >= startOfMonth
+    (p) => (p.declined_at || p.status === "declined") && p.declined_at && new Date(p.declined_at) >= startOfMonth
   );
   const respondedThisMonth = acceptedThisMonth.length + declinedThisMonth.length;
   const acceptanceRateMonth = respondedThisMonth > 0 ? (acceptedThisMonth.length / respondedThisMonth) * 100 : 0;
@@ -91,7 +90,7 @@ const Dashboard = () => {
 
   const wonThisMonth = acceptedThisMonth.reduce((sum, p) => sum + (Number(p.total_price_number) || 0), 0);
 
-  const allAccepted = proposals.filter((p) => p.status === "accepted");
+  const allAccepted = proposals.filter((p) => p.accepted_at != null || p.status === "accepted");
   const wonAllTime = allAccepted.reduce((sum, p) => sum + (Number(p.total_price_number) || 0), 0);
 
   const avgJobValue = proposals.length
@@ -139,14 +138,14 @@ const Dashboard = () => {
   const handleMarkComplete = async (p: Proposal) => {
     const { error } = await supabase
       .from("proposals")
-      .update({ status: "completed", completed_at: new Date().toISOString() } as any)
+      .update({ completed_at: new Date().toISOString() } as any)
       .eq("id", p.id);
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } else {
       setProposals((prev) =>
         prev.map((x) =>
-          x.id === p.id ? { ...x, status: "completed", completed_at: new Date().toISOString() } : x
+          x.id === p.id ? { ...x, completed_at: new Date().toISOString() } : x
         )
       );
       toast({ title: "Job marked as completed" });
@@ -391,6 +390,11 @@ const Dashboard = () => {
                         <span className={`rounded-full border px-2.5 py-0.5 text-xs font-medium ${statusConfig[p.status]?.className || statusConfig.draft.className}`}>
                           {statusConfig[p.status]?.label || "Draft"}
                         </span>
+                        {p.completed_at && (
+                          <span className="inline-flex items-center gap-1 rounded-full border border-emerald-600/30 bg-emerald-600/10 px-2.5 py-0.5 text-xs font-medium text-emerald-600">
+                            <CircleCheckBig className="h-3 w-3" /> Job Completed
+                          </span>
+                        )}
                         {p.needs_review && (
                           <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-0.5 text-xs font-medium text-amber-500">
                             <AlertCircle className="h-3 w-3" /> Needs Review
@@ -422,7 +426,7 @@ const Dashboard = () => {
                           <Pencil className="h-3.5 w-3.5" /> Edit
                         </button>
                       )}
-                      {p.status === "accepted" && !p.completed_at && (
+                      {(p.status === "accepted" || p.accepted_at) && !p.completed_at && (
                         <button
                           onClick={() => handleMarkComplete(p)}
                           className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-600/30 bg-emerald-600/10 px-3 py-1.5 text-xs font-medium text-emerald-600 transition-colors hover:bg-emerald-600/20"
@@ -430,7 +434,7 @@ const Dashboard = () => {
                           <CircleCheckBig className="h-3.5 w-3.5" /> Mark Job Complete
                         </button>
                       )}
-                      {(p.status === "completed" || p.completed_at) && (p as any).payment_status !== "paid" && (
+                      {p.completed_at && (p as any).payment_status !== "paid" && (
                         <button
                           onClick={() => setPaymentProposal(p)}
                           className="inline-flex items-center gap-1.5 rounded-lg border border-primary/30 bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-primary/20"
