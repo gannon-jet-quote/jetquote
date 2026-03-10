@@ -126,10 +126,13 @@ const Dashboard = () => {
     if (user) {
       supabase
         .from("profiles")
-        .select("first_name, last_name, business_name, business_phone, payment_method_name, payment_link_or_instructions")
+        .select("first_name, last_name, business_name, business_phone, payment_method_name, payment_link_or_instructions, review_platform, review_link, review_signature_name")
         .eq("user_id", user.id)
         .maybeSingle()
-        .then(({ data }) => setPaymentProfile(data));
+        .then(({ data }) => {
+          setPaymentProfile(data);
+          setReviewProfile(data);
+        });
     }
   }, [user]);
 
