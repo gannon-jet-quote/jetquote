@@ -37,6 +37,11 @@ const Settings = () => {
   const [paymentLinkOrInstructions, setPaymentLinkOrInstructions] = useState("");
   const [paymentNote, setPaymentNote] = useState("");
 
+  // Review preferences
+  const [reviewPlatform, setReviewPlatform] = useState("");
+  const [reviewLink, setReviewLink] = useState("");
+  const [reviewSignatureName, setReviewSignatureName] = useState("");
+
   // Branding fields
   const [logoDataUrl, setLogoDataUrl] = useState<string | null>(null);
   const [tone, setTone] = useState("standard");
