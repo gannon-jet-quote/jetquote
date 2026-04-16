@@ -30,24 +30,8 @@ const Login = () => {
       toast({ title: "Login failed", description: error.message, variant: "destructive" });
       return;
     }
-    // Fetch user and role before redirecting
-    const { data: { user: authUser } } = await supabase.auth.getUser();
-    if (authUser) {
-      const { data: profileData } = await supabase
-        .from("profiles")
-        .select("role")
-        .eq("user_id", authUser.id)
-        .maybeSingle();
-      setLoading(false);
-      if (profileData?.role === "admin") {
-        navigate("/admin", { replace: true });
-      } else {
-        navigate("/dashboard", { replace: true });
-      }
-    } else {
-      setLoading(false);
-      navigate("/dashboard", { replace: true });
-    }
+    setLoading(false);
+    navigate("/dashboard", { replace: true });
   };
 
   return (
