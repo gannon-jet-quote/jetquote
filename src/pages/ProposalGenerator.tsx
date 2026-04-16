@@ -9,7 +9,7 @@ import ConditionalFields from "@/components/ConditionalFields";
 import ProposalOutput, { type ProposalMeta } from "@/components/ProposalOutput";
 import LogoUpload from "@/components/LogoUpload";
 import ColorPaletteSelector, { type ColorChoice } from "@/components/ColorPaletteSelector";
-import { serviceTypes, toneOptions } from "@/config/serviceTypes";
+import { serviceTypes, toneOptions, getServicesByCategory } from "@/config/serviceTypes";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -410,11 +410,16 @@ const ProposalGenerator = () => {
                   <SelectTrigger className="border-border bg-input text-foreground">
                     <SelectValue placeholder="Select service type" />
                   </SelectTrigger>
-                  <SelectContent className="border-border bg-card text-foreground">
-                    {serviceTypes.map((s) => (
-                      <SelectItem key={s.id} value={s.id}>
-                        {s.icon} {s.label}
-                      </SelectItem>
+                  <SelectContent className="border-border bg-card text-foreground max-h-72">
+                    {Object.entries(getServicesByCategory()).map(([category, services]) => (
+                      <div key={category}>
+                        <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">{category}</div>
+                        {services.map((s) => (
+                          <SelectItem key={s.id} value={s.id}>
+                            {s.icon} {s.label}
+                          </SelectItem>
+                        ))}
+                      </div>
                     ))}
                   </SelectContent>
                 </Select>
