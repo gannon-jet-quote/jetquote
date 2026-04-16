@@ -250,39 +250,51 @@ export type Database = {
       }
       quote_requests: {
         Row: {
+          best_contact_time: string | null
           client_email: string
           client_name: string
           client_phone: string | null
           created_at: string
           id: string
+          preferred_contact_method: string | null
           project_description: string
           property_address: string
+          property_type: string | null
           proposal_id: string | null
           service_type: string
+          urgency: string | null
           user_id: string
         }
         Insert: {
+          best_contact_time?: string | null
           client_email: string
           client_name: string
           client_phone?: string | null
           created_at?: string
           id?: string
+          preferred_contact_method?: string | null
           project_description: string
           property_address: string
+          property_type?: string | null
           proposal_id?: string | null
           service_type: string
+          urgency?: string | null
           user_id: string
         }
         Update: {
+          best_contact_time?: string | null
           client_email?: string
           client_name?: string
           client_phone?: string | null
           created_at?: string
           id?: string
+          preferred_contact_method?: string | null
           project_description?: string
           property_address?: string
+          property_type?: string | null
           proposal_id?: string | null
           service_type?: string
+          urgency?: string | null
           user_id?: string
         }
         Relationships: [

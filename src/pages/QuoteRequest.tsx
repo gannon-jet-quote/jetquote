@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { motion } from "framer-motion";
-import { Loader2, CheckCircle, Send } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Loader2, CheckCircle, Send, ChevronDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -34,6 +34,11 @@ const QuoteRequest = () => {
   const [serviceType, setServiceType] = useState("");
   const [propertyAddress, setPropertyAddress] = useState("");
   const [projectDescription, setProjectDescription] = useState("");
+  const [optionalOpen, setOptionalOpen] = useState(false);
+  const [urgency, setUrgency] = useState("");
+  const [propertyType, setPropertyType] = useState("");
+  const [preferredContact, setPreferredContact] = useState("");
+  const [bestContactTime, setBestContactTime] = useState("");
 
   useEffect(() => {
     const fetchBusiness = async () => {
@@ -82,6 +87,10 @@ const QuoteRequest = () => {
           serviceType,
           propertyAddress: propertyAddress.trim(),
           projectDescription: projectDescription.trim(),
+          urgency: urgency || null,
+          propertyType: propertyType || null,
+          preferredContactMethod: preferredContact || null,
+          bestContactTime: bestContactTime || null,
         },
       });
       if (res.error) throw new Error(res.error.message);
@@ -237,6 +246,88 @@ const QuoteRequest = () => {
                 required
               />
             </div>
+          </div>
+
+          {/* Optional Details Collapsible */}
+          <div className="mt-4 rounded-lg border border-slate-200">
+            <button
+              type="button"
+              onClick={() => setOptionalOpen(!optionalOpen)}
+              className="flex w-full items-center justify-between px-4 py-3 text-sm font-medium text-slate-600 hover:text-slate-800 transition-colors"
+            >
+              <span>Optional details (helps accuracy)</span>
+              <ChevronDown className={`h-4 w-4 transition-transform ${optionalOpen ? "rotate-180" : ""}`} />
+            </button>
+            <AnimatePresence initial={false}>
+              {optionalOpen && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="overflow-hidden"
+                >
+                  <div className="space-y-4 border-t border-slate-100 px-4 pb-4 pt-3">
+                    <div className="space-y-1.5">
+                      <Label className="text-sm font-medium text-slate-700">Urgency</Label>
+                      <Select value={urgency} onValueChange={setUrgency}>
+                        <SelectTrigger className="border-slate-200 bg-white text-slate-800">
+                          <SelectValue placeholder="How soon do you need this?" />
+                        </SelectTrigger>
+                        <SelectContent className="border-slate-200 bg-white text-slate-800">
+                          <SelectItem value="asap">ASAP</SelectItem>
+                          <SelectItem value="this_week">This week</SelectItem>
+                          <SelectItem value="next_week">Next week</SelectItem>
+                          <SelectItem value="flexible">Flexible</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <Label className="text-sm font-medium text-slate-700">Property Type</Label>
+                      <Select value={propertyType} onValueChange={setPropertyType}>
+                        <SelectTrigger className="border-slate-200 bg-white text-slate-800">
+                          <SelectValue placeholder="Residential or commercial?" />
+                        </SelectTrigger>
+                        <SelectContent className="border-slate-200 bg-white text-slate-800">
+                          <SelectItem value="residential">Residential</SelectItem>
+                          <SelectItem value="commercial">Commercial</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <Label className="text-sm font-medium text-slate-700">Preferred Contact Method</Label>
+                      <Select value={preferredContact} onValueChange={setPreferredContact}>
+                        <SelectTrigger className="border-slate-200 bg-white text-slate-800">
+                          <SelectValue placeholder="How should we reach you?" />
+                        </SelectTrigger>
+                        <SelectContent className="border-slate-200 bg-white text-slate-800">
+                          <SelectItem value="email">Email</SelectItem>
+                          <SelectItem value="text">Text</SelectItem>
+                          <SelectItem value="phone">Phone</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <Label className="text-sm font-medium text-slate-700">Best Time to Contact</Label>
+                      <Select value={bestContactTime} onValueChange={setBestContactTime}>
+                        <SelectTrigger className="border-slate-200 bg-white text-slate-800">
+                          <SelectValue placeholder="When works best?" />
+                        </SelectTrigger>
+                        <SelectContent className="border-slate-200 bg-white text-slate-800">
+                          <SelectItem value="morning">Morning (8am–12pm)</SelectItem>
+                          <SelectItem value="afternoon">Afternoon (12pm–5pm)</SelectItem>
+                          <SelectItem value="evening">Evening (5pm–8pm)</SelectItem>
+                          <SelectItem value="anytime">Anytime</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
           <button
