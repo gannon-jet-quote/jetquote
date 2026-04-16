@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { serviceTypes } from "@/config/serviceTypes";
+import { serviceTypes, getServicesByCategory } from "@/config/serviceTypes";
 import { useToast } from "@/hooks/use-toast";
 
 interface BusinessInfo {
@@ -200,11 +200,16 @@ const QuoteRequest = () => {
                 <SelectTrigger className="border-slate-200 bg-white text-slate-800">
                   <SelectValue placeholder="Select a service" />
                 </SelectTrigger>
-                <SelectContent className="border-slate-200 bg-white text-slate-800">
-                  {serviceTypes.map((s) => (
-                    <SelectItem key={s.id} value={s.label}>
-                      {s.icon} {s.label}
-                    </SelectItem>
+                <SelectContent className="border-slate-200 bg-white text-slate-800 max-h-72">
+                  {Object.entries(getServicesByCategory()).map(([category, services]) => (
+                    <div key={category}>
+                      <div className="px-2 py-1.5 text-xs font-semibold text-slate-400">{category}</div>
+                      {services.map((s) => (
+                        <SelectItem key={s.id} value={s.label}>
+                          {s.icon} {s.label}
+                        </SelectItem>
+                      ))}
+                    </div>
                   ))}
                 </SelectContent>
               </Select>

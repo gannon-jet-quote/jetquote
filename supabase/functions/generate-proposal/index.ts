@@ -27,6 +27,7 @@ serve(async (req) => {
       businessName, businessPhone, businessEmail,
       tone, licensedInsured, satisfactionGuarantee,
       conditionalFields,
+      defaultScopeBullets,
     } = body;
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
@@ -61,6 +62,7 @@ Job Description: ${jobDescription}
 Price: ${totalPrice}
 Timeline: ${timeline}
 Business: ${businessName}, ${businessPhone}, ${businessEmail}
+${defaultScopeBullets && defaultScopeBullets.length > 0 ? `\nDefault Scope of Work Bullets (use as starting point, expand with job description):\n${defaultScopeBullets.map((b: string) => `- ${b}`).join("\n")}` : ""}
 ${conditionalDetails ? `\nAdditional Details:\n${conditionalDetails}` : ""}`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
