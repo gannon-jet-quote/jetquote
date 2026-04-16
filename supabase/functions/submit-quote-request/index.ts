@@ -12,7 +12,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { username, clientName, clientEmail, clientPhone, serviceType, propertyAddress, projectDescription } = await req.json();
+    const { username, clientName, clientEmail, clientPhone, serviceType, propertyAddress, projectDescription, urgency, propertyType, preferredContactMethod, bestContactTime } = await req.json();
 
     if (!username || !clientName || !clientEmail || !serviceType || !propertyAddress || !projectDescription) {
       return new Response(JSON.stringify({ error: "Missing required fields" }), {
@@ -81,6 +81,21 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Build optional details summary for the proposal job description
+    const optionalParts: string[] = [];
+    if (urgency) optionalParts.push(`Urgency: ${urgency}`);
+    if (propertyType) optionalParts.push(`Property Type: ${propertyType}`);
+    if (preferredContactMethod) optionalParts.push(`Preferred Contact: ${preferredContactMethod}`);
+    if (bestContactTime) optionalParts.push(`Best Time to Contact: ${bestContactTime}`);
+    const optionalSummary = optionalParts.length > 0 ? `\n\nAdditional Details:\n${optionalParts.join("\n")}` : "";
+
+    // Update the draft proposal's job_description with optional details
+    if (optionalSummary) {
+      await supabase.from("proposals").update({
+        job_description: projectDescription + optionalSummary,
+      }).eq("id", proposal.id);
+    }
+
     // Save quote request
     await supabase.from("quote_requests").insert({
       user_id: profile.user_id,
@@ -91,6 +106,10 @@ Deno.serve(async (req) => {
       property_address: propertyAddress,
       project_description: projectDescription,
       proposal_id: proposal.id,
+      urgency: urgency || null,
+      property_type: propertyType || null,
+      preferred_contact_method: preferredContactMethod || null,
+      best_contact_time: bestContactTime || null,
     });
 
     // Send notification email to the user
