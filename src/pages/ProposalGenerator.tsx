@@ -274,7 +274,7 @@ const ProposalGenerator = () => {
     setLoading(true);
     try {
       const response = await supabase.functions.invoke("generate-proposal", {
-        body: { ...form, serviceLabel: selectedService?.label },
+        body: { ...form, serviceLabel: selectedService?.label, defaultScopeBullets: selectedService?.defaultScopeBullets },
       });
 
       if (response.error) {
