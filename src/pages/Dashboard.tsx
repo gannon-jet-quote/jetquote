@@ -21,7 +21,7 @@ import {
 import SendEmailModal from "@/components/SendEmailModal";
 import PaymentRequestModal from "@/components/PaymentRequestModal";
 import ReviewRequestModal from "@/components/ReviewRequestModal";
-import ProposalStepper from "@/components/ProposalStepper";
+import ProposalStepper, { getStepState } from "@/components/ProposalStepper";
 
 interface Proposal {
   id: string;
@@ -448,111 +448,42 @@ const Dashboard = () => {
                         )}
                       </div>
                     </div>
-                    <div className="flex flex-wrap gap-2">
-                      {p.status === "draft" && (
-                        <button
-                          onClick={() => handleEdit(p)}
-                          className="inline-flex items-center gap-1.5 rounded-lg border border-primary/30 bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-primary/20"
-                        >
-                          <Pencil className="h-3.5 w-3.5" /> Edit
-                        </button>
-                      )}
-                      {(p.status === "accepted" || p.accepted_at) && !p.completed_at && (
-                        <button
-                          onClick={() => handleMarkComplete(p)}
-                          className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-600/30 bg-emerald-600/10 px-3 py-1.5 text-xs font-medium text-emerald-600 transition-colors hover:bg-emerald-600/20"
-                        >
-                          <CircleCheckBig className="h-3.5 w-3.5" /> Mark Job Complete
-                        </button>
-                      )}
-                      {p.completed_at && (p as any).payment_status !== "paid" && (
-                        <button
-                          onClick={() => setPaymentProposal(p)}
-                          className="inline-flex items-center gap-1.5 rounded-lg border border-primary/30 bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-primary/20"
-                        >
-                          <BadgeDollarSign className="h-3.5 w-3.5" /> {(p as any).payment_request_sent_at ? "Resend Payment Request" : "Send Payment Request"}
-                        </button>
-                      )}
-                      {(p as any).payment_status === "requested" && (
-                        <button
-                          onClick={() => handleMarkPaymentReceived(p)}
-                          className="inline-flex items-center gap-1.5 rounded-lg border border-green-600/30 bg-green-600/10 px-3 py-1.5 text-xs font-medium text-green-600 transition-colors hover:bg-green-600/20"
-                        >
-                          <CheckCircle className="h-3.5 w-3.5" /> Mark Payment Received
-                        </button>
-                      )}
-                      {(p as any).payment_status === "paid" && (
-                        <button
-                          onClick={() => setReviewProposal(p)}
-                          className="inline-flex items-center gap-1.5 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-1.5 text-xs font-medium text-amber-500 transition-colors hover:bg-amber-500/20"
-                        >
-                          <Star className="h-3.5 w-3.5" /> {(p as any).review_request_sent_at ? "Resend Review Request" : "Send Review Request"}
-                        </button>
-                      )}
+                    <div className="flex flex-wrap items-center gap-1">
                       <button
                         onClick={() => setExpandedId(expandedId === p.id ? null : p.id)}
-                        className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-secondary px-3 py-1.5 text-xs font-medium text-secondary-foreground transition-colors hover:bg-accent"
+                        title={expandedId === p.id ? "Hide proposal" : "View proposal"}
+                        className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
                       >
-                        <Eye className="h-3.5 w-3.5" /> {expandedId === p.id ? "Hide" : "View"}
+                        <Eye className="h-4 w-4" />
                       </button>
                       <button
                         onClick={() => handleDownloadPDF(p)}
-                        className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-secondary px-3 py-1.5 text-xs font-medium text-secondary-foreground transition-colors hover:bg-accent"
+                        title="Download PDF"
+                        className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
                       >
-                        <Download className="h-3.5 w-3.5" /> PDF
+                        <Download className="h-4 w-4" />
                       </button>
                       <button
                         onClick={() => handleCopy(p.proposal_text)}
-                        className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-secondary px-3 py-1.5 text-xs font-medium text-secondary-foreground transition-colors hover:bg-accent"
+                        title="Copy proposal text"
+                        className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
                       >
-                        <Copy className="h-3.5 w-3.5" /> Copy
+                        <Copy className="h-4 w-4" />
                       </button>
                       <button
                         onClick={() => handleDuplicate(p)}
-                        className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-secondary px-3 py-1.5 text-xs font-medium text-secondary-foreground transition-colors hover:bg-accent"
+                        title="Duplicate proposal"
+                        className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
                       >
-                        <Files className="h-3.5 w-3.5" /> Duplicate
+                        <Files className="h-4 w-4" />
                       </button>
-                      <button
-                        onClick={() => setEmailProposal(p)}
-                        className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-secondary px-3 py-1.5 text-xs font-medium text-secondary-foreground transition-colors hover:bg-accent"
-                      >
-                        {p.sent_at || p.status === "sent" ? (
-                          <>
-                            <RotateCw className="h-3.5 w-3.5" /> Resend Proposal
-                          </>
-                        ) : (
-                          <>
-                            <Mail className="h-3.5 w-3.5" /> Send
-                          </>
-                        )}
-                      </button>
-                      {p.status === "sent" && !p.accepted_at && !p.declined_at && (
-                        <button
-                          onClick={() => handleSendFollowupNow(p)}
-                          disabled={followupSendingId === p.id}
-                          title={p.followup_sent_at ? "Follow-up already sent — click to resend" : "Send the follow-up email now"}
-                          className="inline-flex items-center gap-1.5 rounded-lg border border-primary/30 bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-primary/20 disabled:opacity-50"
-                        >
-                          {followupSendingId === p.id ? (
-                            <>
-                              <Loader2 className="h-3.5 w-3.5 animate-spin" /> Sending...
-                            </>
-                          ) : p.followup_sent_at ? (
-                            <>
-                              <RotateCw className="h-3.5 w-3.5" /> Resend Follow-Up
-                            </>
-                          ) : (
-                            <>
-                              <Bell className="h-3.5 w-3.5" /> Send Follow-Up Now
-                            </>
-                          )}
-                        </button>
-                      )}
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
-                          <button className="inline-flex items-center gap-1.5 rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-1.5 text-xs font-medium text-destructive transition-colors hover:bg-destructive/20">
-                            <Trash2 className="h-3.5 w-3.5" /> Delete
+                          <button
+                            title="Delete proposal"
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+                          >
+                            <Trash2 className="h-4 w-4" />
                           </button>
                         </AlertDialogTrigger>
                         <AlertDialogContent className="border-border bg-card">
@@ -629,6 +560,122 @@ const Dashboard = () => {
                   )}
 
                   <ProposalStepper proposal={p} />
+
+                  {/* Step-aligned primary CTAs */}
+                  {(() => {
+                    const { current, isDeclined } = getStepState(p);
+                    const ctas: React.ReactNode[] = [];
+
+                    if (isDeclined) {
+                      // No primary CTA for declined proposals
+                    } else if (current === "draft") {
+                      ctas.push(
+                        <button
+                          key="edit"
+                          onClick={() => handleEdit(p)}
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-secondary px-3 py-1.5 text-xs font-medium text-secondary-foreground transition-colors hover:bg-accent"
+                        >
+                          <Pencil className="h-3.5 w-3.5" /> Edit
+                        </button>,
+                        <button
+                          key="send"
+                          onClick={() => setEmailProposal(p)}
+                          className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground transition-all hover:brightness-110"
+                        >
+                          <Mail className="h-3.5 w-3.5" /> Send Proposal
+                        </button>
+                      );
+                    } else if (current === "sent") {
+                      ctas.push(
+                        <button
+                          key="resend"
+                          onClick={() => setEmailProposal(p)}
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-secondary px-3 py-1.5 text-xs font-medium text-secondary-foreground transition-colors hover:bg-accent"
+                        >
+                          <RotateCw className="h-3.5 w-3.5" /> Resend Proposal
+                        </button>,
+                        <button
+                          key="followup"
+                          onClick={() => handleSendFollowupNow(p)}
+                          disabled={followupSendingId === p.id}
+                          title={p.followup_sent_at ? "Follow-up already sent — click to resend" : "Send the follow-up email now"}
+                          className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground transition-all hover:brightness-110 disabled:opacity-50"
+                        >
+                          {followupSendingId === p.id ? (
+                            <>
+                              <Loader2 className="h-3.5 w-3.5 animate-spin" /> Sending...
+                            </>
+                          ) : p.followup_sent_at ? (
+                            <>
+                              <RotateCw className="h-3.5 w-3.5" /> Resend Follow-Up
+                            </>
+                          ) : (
+                            <>
+                              <Bell className="h-3.5 w-3.5" /> Send Follow-Up Now
+                            </>
+                          )}
+                        </button>
+                      );
+                    } else if (current === "accepted") {
+                      ctas.push(
+                        <button
+                          key="complete"
+                          onClick={() => handleMarkComplete(p)}
+                          className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground transition-all hover:brightness-110"
+                        >
+                          <CircleCheckBig className="h-3.5 w-3.5" /> Mark Job Complete
+                        </button>
+                      );
+                    } else if (current === "completed") {
+                      ctas.push(
+                        <button
+                          key="payment"
+                          onClick={() => setPaymentProposal(p)}
+                          className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground transition-all hover:brightness-110"
+                        >
+                          <BadgeDollarSign className="h-3.5 w-3.5" /> {p.payment_request_sent_at ? "Resend Payment Request" : "Send Payment Request"}
+                        </button>
+                      );
+                      if (p.payment_status === "requested") {
+                        ctas.push(
+                          <button
+                            key="markpaid"
+                            onClick={() => handleMarkPaymentReceived(p)}
+                            className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-secondary px-3 py-1.5 text-xs font-medium text-secondary-foreground transition-colors hover:bg-accent"
+                          >
+                            <CheckCircle className="h-3.5 w-3.5" /> Mark Payment Received
+                          </button>
+                        );
+                      }
+                    } else if (current === "paid") {
+                      ctas.push(
+                        <button
+                          key="review"
+                          onClick={() => setReviewProposal(p)}
+                          className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground transition-all hover:brightness-110"
+                        >
+                          <Star className="h-3.5 w-3.5" /> Send Review Request
+                        </button>
+                      );
+                    } else if (current === "review") {
+                      ctas.push(
+                        <button
+                          key="resend-review"
+                          onClick={() => setReviewProposal(p)}
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-secondary px-3 py-1.5 text-xs font-medium text-secondary-foreground transition-colors hover:bg-accent"
+                        >
+                          <RotateCw className="h-3.5 w-3.5" /> Resend Review Request
+                        </button>
+                      );
+                    }
+
+                    if (ctas.length === 0) return null;
+                    return (
+                      <div className="mt-3 flex flex-wrap items-center justify-end gap-2">
+                        {ctas}
+                      </div>
+                    );
+                  })()}
                 </motion.div>
               ))}
             </div>
