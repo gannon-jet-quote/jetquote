@@ -30,13 +30,22 @@ Deno.serve(async (req) => {
     // Look up the user by username
     const { data: profile, error: profileErr } = await supabase
       .from("profiles")
-      .select("user_id, business_name, first_name, last_name")
+      .select("user_id, business_name, first_name, last_name, primary_service_type")
       .eq("username", username)
       .maybeSingle();
 
     if (profileErr || !profile) {
       return new Response(JSON.stringify({ error: "Business not found" }), {
         status: 404,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // SECURITY: always use the business's saved primary service type — never trust the client's value
+    const lockedServiceType = profile.primary_service_type || serviceType;
+    if (!lockedServiceType) {
+      return new Response(JSON.stringify({ error: "Business has not configured a primary service type" }), {
+        status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -55,7 +64,7 @@ Deno.serve(async (req) => {
         user_id: profile.user_id,
         client_name: clientName,
         client_email: clientEmail,
-        service_type: serviceType,
+        service_type: lockedServiceType,
         service_address: propertyAddress,
         job_description: projectDescription,
         total_price_formatted: "$0.00",
@@ -102,7 +111,7 @@ Deno.serve(async (req) => {
       client_name: clientName,
       client_email: clientEmail,
       client_phone: clientPhone || null,
-      service_type: serviceType,
+      service_type: lockedServiceType,
       property_address: propertyAddress,
       project_description: projectDescription,
       proposal_id: proposal.id,
@@ -130,7 +139,7 @@ Deno.serve(async (req) => {
             from: "JetQuote <info@jet-quote.com>",
             to: [userEmail],
             subject: "New Quote Request Received",
-            text: `You have received a new quote request.\n\nClient: ${clientName}\nEmail: ${clientEmail}${clientPhone ? `\nPhone: ${clientPhone}` : ""}\nService: ${serviceType}\nAddress: ${propertyAddress}\n\nProject Description:\n${projectDescription}\n\nA draft proposal has been created in your JetQuote dashboard.`,
+            text: `You have received a new quote request.\n\nClient: ${clientName}\nEmail: ${clientEmail}${clientPhone ? `\nPhone: ${clientPhone}` : ""}\nService: ${lockedServiceType}\nAddress: ${propertyAddress}\n\nProject Description:\n${projectDescription}\n\nA draft proposal has been created in your JetQuote dashboard.`,
           }),
         });
       }
