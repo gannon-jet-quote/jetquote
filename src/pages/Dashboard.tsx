@@ -560,6 +560,122 @@ const Dashboard = () => {
                   )}
 
                   <ProposalStepper proposal={p} />
+
+                  {/* Step-aligned primary CTAs */}
+                  {(() => {
+                    const { current, isDeclined } = getStepState(p);
+                    const ctas: React.ReactNode[] = [];
+
+                    if (isDeclined) {
+                      // No primary CTA for declined proposals
+                    } else if (current === "draft") {
+                      ctas.push(
+                        <button
+                          key="edit"
+                          onClick={() => handleEdit(p)}
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-secondary px-3 py-1.5 text-xs font-medium text-secondary-foreground transition-colors hover:bg-accent"
+                        >
+                          <Pencil className="h-3.5 w-3.5" /> Edit
+                        </button>,
+                        <button
+                          key="send"
+                          onClick={() => setEmailProposal(p)}
+                          className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground transition-all hover:brightness-110"
+                        >
+                          <Mail className="h-3.5 w-3.5" /> Send Proposal
+                        </button>
+                      );
+                    } else if (current === "sent") {
+                      ctas.push(
+                        <button
+                          key="resend"
+                          onClick={() => setEmailProposal(p)}
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-secondary px-3 py-1.5 text-xs font-medium text-secondary-foreground transition-colors hover:bg-accent"
+                        >
+                          <RotateCw className="h-3.5 w-3.5" /> Resend Proposal
+                        </button>,
+                        <button
+                          key="followup"
+                          onClick={() => handleSendFollowupNow(p)}
+                          disabled={followupSendingId === p.id}
+                          title={p.followup_sent_at ? "Follow-up already sent — click to resend" : "Send the follow-up email now"}
+                          className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground transition-all hover:brightness-110 disabled:opacity-50"
+                        >
+                          {followupSendingId === p.id ? (
+                            <>
+                              <Loader2 className="h-3.5 w-3.5 animate-spin" /> Sending...
+                            </>
+                          ) : p.followup_sent_at ? (
+                            <>
+                              <RotateCw className="h-3.5 w-3.5" /> Resend Follow-Up
+                            </>
+                          ) : (
+                            <>
+                              <Bell className="h-3.5 w-3.5" /> Send Follow-Up Now
+                            </>
+                          )}
+                        </button>
+                      );
+                    } else if (current === "accepted") {
+                      ctas.push(
+                        <button
+                          key="complete"
+                          onClick={() => handleMarkComplete(p)}
+                          className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground transition-all hover:brightness-110"
+                        >
+                          <CircleCheckBig className="h-3.5 w-3.5" /> Mark Job Complete
+                        </button>
+                      );
+                    } else if (current === "completed") {
+                      ctas.push(
+                        <button
+                          key="payment"
+                          onClick={() => setPaymentProposal(p)}
+                          className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground transition-all hover:brightness-110"
+                        >
+                          <BadgeDollarSign className="h-3.5 w-3.5" /> {p.payment_request_sent_at ? "Resend Payment Request" : "Send Payment Request"}
+                        </button>
+                      );
+                      if (p.payment_status === "requested") {
+                        ctas.push(
+                          <button
+                            key="markpaid"
+                            onClick={() => handleMarkPaymentReceived(p)}
+                            className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-secondary px-3 py-1.5 text-xs font-medium text-secondary-foreground transition-colors hover:bg-accent"
+                          >
+                            <CheckCircle className="h-3.5 w-3.5" /> Mark Payment Received
+                          </button>
+                        );
+                      }
+                    } else if (current === "paid") {
+                      ctas.push(
+                        <button
+                          key="review"
+                          onClick={() => setReviewProposal(p)}
+                          className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground transition-all hover:brightness-110"
+                        >
+                          <Star className="h-3.5 w-3.5" /> Send Review Request
+                        </button>
+                      );
+                    } else if (current === "review") {
+                      ctas.push(
+                        <button
+                          key="resend-review"
+                          onClick={() => setReviewProposal(p)}
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-secondary px-3 py-1.5 text-xs font-medium text-secondary-foreground transition-colors hover:bg-accent"
+                        >
+                          <RotateCw className="h-3.5 w-3.5" /> Resend Review Request
+                        </button>
+                      );
+                    }
+
+                    if (ctas.length === 0) return null;
+                    return (
+                      <div className="mt-3 flex flex-wrap items-center justify-end gap-2">
+                        {ctas}
+                      </div>
+                    );
+                  })()}
                 </motion.div>
               ))}
             </div>
