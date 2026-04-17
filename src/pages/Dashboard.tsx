@@ -567,6 +567,8 @@ const Dashboard = () => {
                       </pre>
                     </motion.div>
                   )}
+
+                  <ProposalStepper proposal={p} />
                 </motion.div>
               ))}
             </div>
