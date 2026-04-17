@@ -21,7 +21,7 @@ import {
 import SendEmailModal from "@/components/SendEmailModal";
 import PaymentRequestModal from "@/components/PaymentRequestModal";
 import ReviewRequestModal from "@/components/ReviewRequestModal";
-import ProposalStepper from "@/components/ProposalStepper";
+import ProposalStepper, { getStepState } from "@/components/ProposalStepper";
 
 interface Proposal {
   id: string;
