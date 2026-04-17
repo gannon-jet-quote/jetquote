@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Loader2, Plus, Eye, Download, Copy, Trash2, FileText, Files, Mail, Send, DollarSign, TrendingUp, LinkIcon, Pencil, AlertCircle, CheckCircle, XCircle, Clock, BadgeDollarSign, CircleCheckBig, Star } from "lucide-react";
+import { Loader2, Plus, Eye, Download, Copy, Trash2, FileText, Files, Mail, Send, DollarSign, TrendingUp, LinkIcon, Pencil, AlertCircle, CheckCircle, XCircle, Clock, BadgeDollarSign, CircleCheckBig, Star, RotateCw, Bell } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -71,6 +71,36 @@ const Dashboard = () => {
   const [reviewProposal, setReviewProposal] = useState<Proposal | null>(null);
   const [paymentProfile, setPaymentProfile] = useState<any>(null);
   const [reviewProfile, setReviewProfile] = useState<any>(null);
+  const [followupSendingId, setFollowupSendingId] = useState<string | null>(null);
+
+  const handleSendFollowupNow = async (p: Proposal) => {
+    setFollowupSendingId(p.id);
+    try {
+      const { data, error } = await supabase.functions.invoke("send-followup-emails", {
+        body: { proposalId: p.id },
+      });
+      if (error) throw new Error(error.message);
+      if (data?.error) throw new Error(data.error);
+      const sent = typeof data?.sent === "number" ? data.sent : 0;
+      if (sent > 0) {
+        const nowIso = new Date().toISOString();
+        setProposals((prev) =>
+          prev.map((x) => (x.id === p.id ? { ...x, followup_sent_at: nowIso } : x))
+        );
+        toast({ title: p.followup_sent_at ? "Follow-up resent" : "Follow-up sent" });
+      } else {
+        toast({
+          title: "Follow-up not sent",
+          description: "Make sure the client email is set on this proposal.",
+          variant: "destructive",
+        });
+      }
+    } catch (e: any) {
+      toast({ title: "Error", description: e.message || "Failed to send follow-up", variant: "destructive" });
+    } finally {
+      setFollowupSendingId(null);
+    }
+  };
 
   const now = new Date();
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -487,8 +517,38 @@ const Dashboard = () => {
                         onClick={() => setEmailProposal(p)}
                         className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-secondary px-3 py-1.5 text-xs font-medium text-secondary-foreground transition-colors hover:bg-accent"
                       >
-                        <Mail className="h-3.5 w-3.5" /> Send
+                        {p.sent_at || p.status === "sent" ? (
+                          <>
+                            <RotateCw className="h-3.5 w-3.5" /> Resend Proposal
+                          </>
+                        ) : (
+                          <>
+                            <Mail className="h-3.5 w-3.5" /> Send
+                          </>
+                        )}
                       </button>
+                      {p.status === "sent" && !p.accepted_at && !p.declined_at && (
+                        <button
+                          onClick={() => handleSendFollowupNow(p)}
+                          disabled={followupSendingId === p.id}
+                          title={p.followup_sent_at ? "Follow-up already sent — click to resend" : "Send the follow-up email now"}
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-primary/30 bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-primary/20 disabled:opacity-50"
+                        >
+                          {followupSendingId === p.id ? (
+                            <>
+                              <Loader2 className="h-3.5 w-3.5 animate-spin" /> Sending...
+                            </>
+                          ) : p.followup_sent_at ? (
+                            <>
+                              <RotateCw className="h-3.5 w-3.5" /> Resend Follow-Up
+                            </>
+                          ) : (
+                            <>
+                              <Bell className="h-3.5 w-3.5" /> Send Follow-Up Now
+                            </>
+                          )}
+                        </button>
+                      )}
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
                           <button className="inline-flex items-center gap-1.5 rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-1.5 text-xs font-medium text-destructive transition-colors hover:bg-destructive/20">

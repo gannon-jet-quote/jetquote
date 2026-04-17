@@ -25,17 +25,41 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Parse optional body for manual single-proposal trigger
+    let manualProposalId: string | null = null;
+    try {
+      if (req.method === "POST") {
+        const body = await req.json().catch(() => null);
+        if (body && typeof body.proposalId === "string") {
+          manualProposalId = body.proposalId;
+        }
+      }
+    } catch (_e) {
+      // ignore body parse errors
+    }
+
     // Find eligible proposals
     const now = new Date().toISOString();
-    const { data: proposals, error: fetchErr } = await supabase
+    let query = supabase
       .from("proposals")
-      .select("id, client_name, client_email, public_token, user_id, branding")
-      .eq("status", "sent")
-      .eq("followup_enabled", true)
-      .is("followup_sent_at", null)
-      .not("followup_scheduled_for", "is", null)
-      .not("client_email", "is", null)
-      .lte("followup_scheduled_for", now);
+      .select("id, client_name, client_email, public_token, user_id, branding, followup_sent_at")
+      .not("client_email", "is", null);
+
+    if (manualProposalId) {
+      // Manual trigger: send for this proposal regardless of schedule/enabled flag
+      // (allows resend even if already sent)
+      query = query.eq("id", manualProposalId);
+    } else {
+      // Scheduled (cron) trigger: only un-sent, eligible, due proposals
+      query = query
+        .eq("status", "sent")
+        .eq("followup_enabled", true)
+        .is("followup_sent_at", null)
+        .not("followup_scheduled_for", "is", null)
+        .lte("followup_scheduled_for", now);
+    }
+
+    const { data: proposals, error: fetchErr } = await query;
 
     if (fetchErr) {
       console.error("Fetch error:", fetchErr);
