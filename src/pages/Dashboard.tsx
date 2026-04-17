@@ -21,6 +21,7 @@ import {
 import SendEmailModal from "@/components/SendEmailModal";
 import PaymentRequestModal from "@/components/PaymentRequestModal";
 import ReviewRequestModal from "@/components/ReviewRequestModal";
+import ProposalStepper from "@/components/ProposalStepper";
 
 interface Proposal {
   id: string;
@@ -566,6 +567,8 @@ const Dashboard = () => {
                       </pre>
                     </motion.div>
                   )}
+
+                  <ProposalStepper proposal={p} />
                 </motion.div>
               ))}
             </div>
