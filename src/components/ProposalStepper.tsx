@@ -28,7 +28,7 @@ const STEPS: Step[] = [
   { key: "review", label: "Review", icon: Star },
 ];
 
-function getStepState(p: StepperProposal) {
+export function getStepState(p: StepperProposal) {
   const isDeclined = p.status === "declined" || !!p.declined_at;
   const isSent = !!p.sent_at || p.status === "sent" || p.status === "accepted" || p.status === "declined" || !!p.accepted_at;
   const isAccepted = p.status === "accepted" || !!p.accepted_at;
