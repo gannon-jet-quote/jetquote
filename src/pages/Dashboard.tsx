@@ -71,6 +71,36 @@ const Dashboard = () => {
   const [reviewProposal, setReviewProposal] = useState<Proposal | null>(null);
   const [paymentProfile, setPaymentProfile] = useState<any>(null);
   const [reviewProfile, setReviewProfile] = useState<any>(null);
+  const [followupSendingId, setFollowupSendingId] = useState<string | null>(null);
+
+  const handleSendFollowupNow = async (p: Proposal) => {
+    setFollowupSendingId(p.id);
+    try {
+      const { data, error } = await supabase.functions.invoke("send-followup-emails", {
+        body: { proposalId: p.id },
+      });
+      if (error) throw new Error(error.message);
+      if (data?.error) throw new Error(data.error);
+      const sent = typeof data?.sent === "number" ? data.sent : 0;
+      if (sent > 0) {
+        const nowIso = new Date().toISOString();
+        setProposals((prev) =>
+          prev.map((x) => (x.id === p.id ? { ...x, followup_sent_at: nowIso } : x))
+        );
+        toast({ title: p.followup_sent_at ? "Follow-up resent" : "Follow-up sent" });
+      } else {
+        toast({
+          title: "Follow-up not sent",
+          description: "Make sure the client email is set on this proposal.",
+          variant: "destructive",
+        });
+      }
+    } catch (e: any) {
+      toast({ title: "Error", description: e.message || "Failed to send follow-up", variant: "destructive" });
+    } finally {
+      setFollowupSendingId(null);
+    }
+  };
 
   const now = new Date();
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
