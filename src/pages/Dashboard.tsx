@@ -517,8 +517,38 @@ const Dashboard = () => {
                         onClick={() => setEmailProposal(p)}
                         className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-secondary px-3 py-1.5 text-xs font-medium text-secondary-foreground transition-colors hover:bg-accent"
                       >
-                        <Mail className="h-3.5 w-3.5" /> Send
+                        {p.sent_at || p.status === "sent" ? (
+                          <>
+                            <RotateCw className="h-3.5 w-3.5" /> Resend Proposal
+                          </>
+                        ) : (
+                          <>
+                            <Mail className="h-3.5 w-3.5" /> Send
+                          </>
+                        )}
                       </button>
+                      {p.status === "sent" && !p.accepted_at && !p.declined_at && (
+                        <button
+                          onClick={() => handleSendFollowupNow(p)}
+                          disabled={followupSendingId === p.id}
+                          title={p.followup_sent_at ? "Follow-up already sent — click to resend" : "Send the follow-up email now"}
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-primary/30 bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-primary/20 disabled:opacity-50"
+                        >
+                          {followupSendingId === p.id ? (
+                            <>
+                              <Loader2 className="h-3.5 w-3.5 animate-spin" /> Sending...
+                            </>
+                          ) : p.followup_sent_at ? (
+                            <>
+                              <RotateCw className="h-3.5 w-3.5" /> Resend Follow-Up
+                            </>
+                          ) : (
+                            <>
+                              <Bell className="h-3.5 w-3.5" /> Send Follow-Up Now
+                            </>
+                          )}
+                        </button>
+                      )}
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
                           <button className="inline-flex items-center gap-1.5 rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-1.5 text-xs font-medium text-destructive transition-colors hover:bg-destructive/20">
