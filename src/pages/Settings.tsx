@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import LogoUpload from "@/components/LogoUpload";
 import ColorPaletteSelector, { type ColorChoice } from "@/components/ColorPaletteSelector";
-import { toneOptions } from "@/config/serviceTypes";
+import { toneOptions, getServicesByCategory } from "@/config/serviceTypes";
 import {
   Select,
   SelectContent,
@@ -31,6 +31,7 @@ const Settings = () => {
   const [title, setTitle] = useState("");
   const [businessPhone, setBusinessPhone] = useState("");
   const [username, setUsername] = useState("");
+  const [primaryServiceType, setPrimaryServiceType] = useState("");
 
   // Payment preferences
   const [paymentMethodName, setPaymentMethodName] = useState("");
@@ -60,6 +61,7 @@ const Settings = () => {
       setTitle(profile.title || "");
       setBusinessPhone(profile.business_phone || "");
       setUsername((profile as any).username || "");
+      setPrimaryServiceType((profile as any).primary_service_type || "");
       setPaymentMethodName((profile as any).payment_method_name || "");
       setPaymentLinkOrInstructions((profile as any).payment_link_or_instructions || "");
       setPaymentNote((profile as any).payment_note || "");
@@ -115,6 +117,7 @@ const Settings = () => {
           title: title.trim() || null,
           business_phone: businessPhone.trim() || null,
           username: username.trim().toLowerCase() || null,
+          primary_service_type: primaryServiceType || null,
           payment_method_name: paymentMethodName.trim() || null,
           payment_link_or_instructions: paymentLinkOrInstructions.trim() || null,
           payment_note: paymentNote.trim() || null,
@@ -194,6 +197,27 @@ const Settings = () => {
                     <Label className="text-secondary-foreground">Business Phone</Label>
                     <Input value={businessPhone} onChange={(e) => setBusinessPhone(e.target.value)} placeholder="(555) 123-4567" className={fieldClass} />
                   </div>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-secondary-foreground">Primary Service Type *</Label>
+                  <Select value={primaryServiceType} onValueChange={setPrimaryServiceType}>
+                    <SelectTrigger className={fieldClass}>
+                      <SelectValue placeholder="Select your primary service" />
+                    </SelectTrigger>
+                    <SelectContent className="border-border bg-card text-foreground max-h-72">
+                      {Object.entries(getServicesByCategory()).map(([category, services]) => (
+                        <div key={category}>
+                          <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">{category}</div>
+                          {services.map((s) => (
+                            <SelectItem key={s.id} value={s.label}>
+                              {s.icon} {s.label}
+                            </SelectItem>
+                          ))}
+                        </div>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">Locks the Service Type on your public quote request form so customers can't pick the wrong one.</p>
                 </div>
                 <div className="space-y-2">
                   <Label className="text-secondary-foreground">Quote Request Username</Label>

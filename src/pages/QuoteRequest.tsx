@@ -1,13 +1,12 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Loader2, CheckCircle, Send, ChevronDown } from "lucide-react";
+import { Loader2, CheckCircle, Send, ChevronDown, Lock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { serviceTypes, getServicesByCategory } from "@/config/serviceTypes";
 import { useToast } from "@/hooks/use-toast";
 
 interface BusinessInfo {
@@ -15,6 +14,7 @@ interface BusinessInfo {
   business_name: string;
   logo_url?: string | null;
   primary_color?: any;
+  primary_service_type?: string | null;
 }
 
 const QuoteRequest = () => {
@@ -24,6 +24,7 @@ const QuoteRequest = () => {
   const [business, setBusiness] = useState<BusinessInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [notConfigured, setNotConfigured] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
@@ -31,7 +32,6 @@ const QuoteRequest = () => {
   const [clientName, setClientName] = useState("");
   const [clientEmail, setClientEmail] = useState("");
   const [clientPhone, setClientPhone] = useState("");
-  const [serviceType, setServiceType] = useState("");
   const [propertyAddress, setPropertyAddress] = useState("");
   const [projectDescription, setProjectDescription] = useState("");
   const [optionalOpen, setOptionalOpen] = useState(false);
@@ -46,7 +46,7 @@ const QuoteRequest = () => {
 
       const { data: profile } = await supabase
         .from("profiles")
-        .select("user_id, business_name")
+        .select("user_id, business_name, primary_service_type")
         .eq("username", username)
         .maybeSingle();
 
@@ -64,7 +64,14 @@ const QuoteRequest = () => {
         business_name: profile.business_name,
         logo_url: branding?.logo_url,
         primary_color: branding?.primary_color,
+        primary_service_type: (profile as any).primary_service_type,
       });
+
+      // If business hasn't configured a primary service type, block the form
+      if (!(profile as any).primary_service_type) {
+        setNotConfigured(true);
+      }
+
       setLoading(false);
     };
     fetchBusiness();
@@ -72,7 +79,8 @@ const QuoteRequest = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!clientName.trim() || !clientEmail.trim() || !serviceType || !propertyAddress.trim() || !projectDescription.trim()) {
+    const lockedServiceType = business?.primary_service_type || "";
+    if (!clientName.trim() || !clientEmail.trim() || !lockedServiceType || !propertyAddress.trim() || !projectDescription.trim()) {
       toast({ title: "Please fill in all required fields", variant: "destructive" });
       return;
     }
@@ -84,7 +92,7 @@ const QuoteRequest = () => {
           clientName: clientName.trim(),
           clientEmail: clientEmail.trim(),
           clientPhone: clientPhone.trim() || null,
-          serviceType,
+          serviceType: lockedServiceType,
           propertyAddress: propertyAddress.trim(),
           projectDescription: projectDescription.trim(),
           urgency: urgency || null,
@@ -117,6 +125,17 @@ const QuoteRequest = () => {
       <div className="flex min-h-screen flex-col items-center justify-center bg-slate-50 px-4">
         <h1 className="mb-2 text-2xl font-bold text-slate-800">Page Not Found</h1>
         <p className="text-slate-500">This quote request page doesn't exist.</p>
+      </div>
+    );
+  }
+
+  if (notConfigured) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center bg-slate-50 px-4 text-center">
+        <h1 className="mb-2 text-2xl font-bold text-slate-800">Business is not configured yet</h1>
+        <p className="max-w-sm text-sm text-slate-500">
+          {business?.business_name} hasn't finished setting up their quote request form. Please check back soon.
+        </p>
       </div>
     );
   }
@@ -204,24 +223,16 @@ const QuoteRequest = () => {
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-sm font-medium text-slate-700">Service Type *</Label>
-              <Select value={serviceType} onValueChange={setServiceType} required>
-                <SelectTrigger className="border-slate-200 bg-white text-slate-800">
-                  <SelectValue placeholder="Select a service" />
-                </SelectTrigger>
-                <SelectContent className="border-slate-200 bg-white text-slate-800 max-h-72">
-                  {Object.entries(getServicesByCategory()).map(([category, services]) => (
-                    <div key={category}>
-                      <div className="px-2 py-1.5 text-xs font-semibold text-slate-400">{category}</div>
-                      {services.map((s) => (
-                        <SelectItem key={s.id} value={s.label}>
-                          {s.icon} {s.label}
-                        </SelectItem>
-                      ))}
-                    </div>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label className="text-sm font-medium text-slate-700">Service Type (set by the business)</Label>
+              <div className="flex items-center justify-between gap-2 rounded-md border border-slate-200 bg-slate-50 px-3 py-2.5">
+                <span className="text-sm font-medium text-slate-800">
+                  {business?.primary_service_type}
+                </span>
+                <span className="inline-flex items-center gap-1 rounded-full bg-slate-200 px-2 py-0.5 text-[11px] font-medium text-slate-600">
+                  <Lock className="h-3 w-3" />
+                  Locked
+                </span>
+              </div>
             </div>
 
             <div className="space-y-1.5">

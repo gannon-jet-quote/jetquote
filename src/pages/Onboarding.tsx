@@ -6,7 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import LogoUpload from "@/components/LogoUpload";
 import ColorPaletteSelector, { type ColorChoice } from "@/components/ColorPaletteSelector";
-import { toneOptions } from "@/config/serviceTypes";
+import { toneOptions, getServicesByCategory } from "@/config/serviceTypes";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -24,6 +24,7 @@ const Onboarding = () => {
   const { toast } = useToast();
 
   const [businessName, setBusinessName] = useState("");
+  const [primaryServiceType, setPrimaryServiceType] = useState("");
   const [logoDataUrl, setLogoDataUrl] = useState<string | null>(null);
   const [tone, setTone] = useState("standard");
   const [primaryColor, setPrimaryColor] = useState<ColorChoice | null>(null);
@@ -34,6 +35,7 @@ const Onboarding = () => {
   useEffect(() => {
     if (profile) {
       setBusinessName(profile.business_name || "");
+      setPrimaryServiceType((profile as any).primary_service_type || "");
     }
   }, [profile]);
 
@@ -56,6 +58,10 @@ const Onboarding = () => {
 
   const handleSave = async () => {
     if (!user) return;
+    if (!primaryServiceType) {
+      toast({ title: "Primary Service Type required", description: "Please choose your primary service.", variant: "destructive" });
+      return;
+    }
     setSaving(true);
     try {
       const logoUrl = await uploadLogo();
@@ -72,10 +78,12 @@ const Onboarding = () => {
 
       if (error) throw error;
 
-      // Also update business name on profile if changed
+      // Update business name + primary service type on profile
+      const profileUpdate: any = { primary_service_type: primaryServiceType };
       if (businessName.trim() && businessName !== profile?.business_name) {
-        await supabase.from("profiles").update({ business_name: businessName.trim() }).eq("user_id", user.id);
+        profileUpdate.business_name = businessName.trim();
       }
+      await supabase.from("profiles").update(profileUpdate).eq("user_id", user.id);
 
       toast({ title: "Branding saved!", description: "You're all set to create proposals." });
       navigate("/generate");
@@ -140,6 +148,29 @@ const Onboarding = () => {
               placeholder="Your Company LLC"
               className={fieldClass}
             />
+          </div>
+
+          {/* Primary Service Type */}
+          <div className="space-y-2">
+            <Label className="text-secondary-foreground">Primary Service Type *</Label>
+            <Select value={primaryServiceType} onValueChange={setPrimaryServiceType}>
+              <SelectTrigger className={fieldClass}>
+                <SelectValue placeholder="Select your primary service" />
+              </SelectTrigger>
+              <SelectContent className="border-border bg-card text-foreground max-h-72">
+                {Object.entries(getServicesByCategory()).map(([category, services]) => (
+                  <div key={category}>
+                    <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">{category}</div>
+                    {services.map((s) => (
+                      <SelectItem key={s.id} value={s.label}>
+                        {s.icon} {s.label}
+                      </SelectItem>
+                    ))}
+                  </div>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">This locks the Service Type on your public quote request form so customers can't pick the wrong one.</p>
           </div>
 
           {/* Logo */}
