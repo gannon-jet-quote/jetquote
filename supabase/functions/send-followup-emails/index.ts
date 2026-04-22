@@ -161,9 +161,45 @@ ${businessName}`;
           .eq("id", p.id);
 
         sentCount++;
+        await supabase.from("system_events").insert({
+          event_type: "followup_sent",
+          event_source: manualProposalId ? "manual" : "cron",
+          user_id: p.user_id,
+          proposal_id: p.id,
+          metadata: { to: p.client_email },
+        });
+        await supabase.from("system_events").insert({
+          event_type: "email_sent",
+          event_source: "followup",
+          user_id: p.user_id,
+          proposal_id: p.id,
+          metadata: { email_type: "followup", to: p.client_email },
+        });
       } catch (e) {
         console.error(`Error processing follow-up for ${p.id}:`, e);
+        await supabase.from("system_events").insert({
+          event_type: "error",
+          event_source: "send-followup-emails",
+          user_id: p.user_id,
+          proposal_id: p.id,
+          metadata: { context: "send_followup", message: e instanceof Error ? e.message : String(e) },
+        });
       }
+    }
+
+    // Log cron run summary (only for scheduled invocations)
+    if (!manualProposalId) {
+      await supabase.from("system_events").insert({
+        event_type: "cron_run",
+        event_source: "send-followup-emails",
+        metadata: {
+          processed_count: proposals.length,
+          sent_count: sentCount,
+          skipped_count: proposals.length - sentCount,
+          result: "success",
+          message: `Processed ${proposals.length} due follow-ups, sent ${sentCount}`,
+        },
+      });
     }
 
     return new Response(JSON.stringify({ sent: sentCount }), {
@@ -173,6 +209,22 @@ ${businessName}`;
   } catch (err: unknown) {
     console.error("send-followup-emails error:", err);
     const msg = err instanceof Error ? err.message : "Unknown error";
+    try {
+      const sb = createClient(
+        Deno.env.get("SUPABASE_URL")!,
+        Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+      );
+      await sb.from("system_events").insert({
+        event_type: "error",
+        event_source: "send-followup-emails",
+        metadata: { context: "top_level", message: msg },
+      });
+      await sb.from("system_events").insert({
+        event_type: "cron_run",
+        event_source: "send-followup-emails",
+        metadata: { result: "fail", message: msg },
+      });
+    } catch (_e) { /* ignore */ }
     return new Response(JSON.stringify({ error: msg }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },

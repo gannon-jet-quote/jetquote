@@ -421,6 +421,36 @@ export type Database = {
         }
         Relationships: []
       }
+      system_events: {
+        Row: {
+          created_at: string
+          event_source: string | null
+          event_type: string
+          id: string
+          metadata: Json | null
+          proposal_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_source?: string | null
+          event_type: string
+          id?: string
+          metadata?: Json | null
+          proposal_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_source?: string | null
+          event_type?: string
+          id?: string
+          metadata?: Json | null
+          proposal_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

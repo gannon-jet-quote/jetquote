@@ -118,6 +118,14 @@ Deno.serve(async (req) => {
       })
       .eq("id", proposalId);
 
+    await supabase.from("system_events").insert({
+      event_type: "email_sent",
+      event_source: "send_proposal",
+      user_id: userId,
+      proposal_id: proposalId,
+      metadata: { email_type: "proposal", to },
+    });
+
     return new Response(JSON.stringify({ success: true, emailId: emailData.id }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },

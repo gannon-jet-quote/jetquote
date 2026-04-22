@@ -68,11 +68,26 @@ Deno.serve(async (req) => {
 
     if (updateErr) {
       console.error("Update error:", updateErr);
+      await supabase.from("system_events").insert({
+        event_type: "error",
+        event_source: "proposal-respond",
+        proposal_id: proposal.id,
+        metadata: { context: "update_proposal", message: updateErr.message },
+      });
       return new Response(JSON.stringify({ error: "Failed to update proposal" }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    // Log accept/decline event
+    await supabase.from("system_events").insert({
+      event_type: action === "accept" ? "proposal_accepted" : "proposal_declined",
+      event_source: "client_response",
+      user_id: proposal.user_id,
+      proposal_id: proposal.id,
+      metadata: { client_name: proposal.client_name },
+    });
 
     // Send notification email to user
     try {
@@ -101,7 +116,7 @@ Deno.serve(async (req) => {
           const subject = `Proposal ${statusWord} by ${proposal.client_name}`;
           const body = `Hello ${userName},\n\nYour client ${proposal.client_name} has ${newStatus} the proposal for ${proposal.service_type}.\n\nProposal amount: ${proposal.total_price_formatted}\n\nYou can view the updated status in your JetQuote dashboard.`;
 
-          await fetch("https://api.resend.com/emails", {
+          const notifyRes = await fetch("https://api.resend.com/emails", {
             method: "POST",
             headers: {
               Authorization: `Bearer ${RESEND_API_KEY}`,
@@ -114,11 +129,25 @@ Deno.serve(async (req) => {
               text: body,
             }),
           });
+          if (notifyRes.ok) {
+            await supabase.from("system_events").insert({
+              event_type: "email_sent",
+              event_source: "proposal_response_notification",
+              user_id: proposal.user_id,
+              proposal_id: proposal.id,
+              metadata: { email_type: "response_notification", to: userEmail },
+            });
+          }
         }
       }
     } catch (emailErr) {
       console.error("Email notification error:", emailErr);
-      // Don't fail the response if email fails
+      await supabase.from("system_events").insert({
+        event_type: "error",
+        event_source: "proposal-respond",
+        proposal_id: proposal.id,
+        metadata: { context: "notification_email", message: emailErr instanceof Error ? emailErr.message : String(emailErr) },
+      });
     }
 
     return new Response(JSON.stringify({ success: true, status: newStatus }), {
