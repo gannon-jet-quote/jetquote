@@ -22,6 +22,9 @@ import SendEmailModal from "@/components/SendEmailModal";
 import PaymentRequestModal from "@/components/PaymentRequestModal";
 import ReviewRequestModal from "@/components/ReviewRequestModal";
 import ProposalStepper, { getStepState } from "@/components/ProposalStepper";
+import { usePlan } from "@/hooks/usePlan";
+import { openUpgradeModal } from "@/lib/upgradeModal";
+import { Sparkles } from "lucide-react";
 
 interface Proposal {
   id: string;
@@ -63,6 +66,7 @@ const Dashboard = () => {
   const { user, profile } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { isPro, sentThisMonth: planSentMonth, freeLimit, atFreeLimit } = usePlan();
   const [proposals, setProposals] = useState<Proposal[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
