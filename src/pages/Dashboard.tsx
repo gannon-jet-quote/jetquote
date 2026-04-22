@@ -307,7 +307,7 @@ const Dashboard = () => {
       <Navbar />
       <div className="container mx-auto max-w-4xl px-6 pt-24 pb-16">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-          <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h1 className="font-display text-3xl font-bold text-foreground">My Proposals</h1>
               <p className="text-muted-foreground">Manage and download your saved proposals.</p>
@@ -332,6 +332,40 @@ const Dashboard = () => {
                 <Plus className="h-4 w-4" /> New Proposal
               </Link>
             </div>
+          </div>
+
+          {/* Plan card */}
+          <div className="mb-6 flex flex-col gap-3 rounded-xl border border-border bg-card p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-3">
+              <div className={`flex h-9 w-9 items-center justify-center rounded-lg ${isPro ? "bg-primary/10" : "bg-muted"}`}>
+                <Sparkles className={`h-4 w-4 ${isPro ? "text-primary" : "text-muted-foreground"}`} />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-foreground">
+                  {isPro ? "Pro plan" : "Free plan"}
+                </p>
+                {!isPro ? (
+                  <p className="text-xs text-muted-foreground">
+                    {Math.min(planSentMonth, freeLimit)} of {freeLimit} proposals sent this month
+                    {atFreeLimit ? " — limit reached" : ""}
+                  </p>
+                ) : (
+                  <p className="text-xs text-muted-foreground">Unlimited sends, follow-ups, payments & reviews</p>
+                )}
+              </div>
+            </div>
+            {isPro ? (
+              <span className="inline-flex items-center gap-1 self-start rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-medium text-primary sm:self-auto">
+                <Sparkles className="h-3 w-3" /> Pro Active
+              </span>
+            ) : (
+              <Link
+                to="/pricing"
+                className="inline-flex items-center gap-1.5 self-start rounded-lg bg-primary px-4 py-2 text-xs font-medium text-primary-foreground transition-all hover:brightness-110 sm:self-auto"
+              >
+                <Sparkles className="h-3.5 w-3.5" /> Upgrade to Pro
+              </Link>
+            )}
           </div>
 
           <div className="mb-8 space-y-4">
