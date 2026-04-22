@@ -20,6 +20,7 @@ import QuoteRequest from "./pages/QuoteRequest";
 import Pricing from "./pages/Pricing";
 import NotFound from "./pages/NotFound";
 import UpgradeModal from "@/components/UpgradeModal";
+import SetupPromptModal from "@/components/SetupPromptModal";
 
 const queryClient = new QueryClient();
 
@@ -31,6 +32,7 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <UpgradeModal />
+          <SetupPromptModal />
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />

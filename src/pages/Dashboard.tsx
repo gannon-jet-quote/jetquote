@@ -24,7 +24,9 @@ import ReviewRequestModal from "@/components/ReviewRequestModal";
 import ProposalStepper, { getStepState } from "@/components/ProposalStepper";
 import { usePlan } from "@/hooks/usePlan";
 import { openUpgradeModal } from "@/lib/upgradeModal";
+import { openSetupPrompt } from "@/lib/setupPrompt";
 import { Sparkles } from "lucide-react";
+import SetupChecklist from "@/components/SetupChecklist";
 
 interface Proposal {
   id: string;
