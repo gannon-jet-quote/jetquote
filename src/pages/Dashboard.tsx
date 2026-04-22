@@ -336,6 +336,8 @@ const Dashboard = () => {
             </div>
           </div>
 
+          <SetupChecklist />
+
           {/* Plan card */}
           <div className="mb-6 flex flex-col gap-3 rounded-xl border border-border bg-card p-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-3">
