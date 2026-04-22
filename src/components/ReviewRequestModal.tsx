@@ -98,9 +98,16 @@ const ReviewRequestModal = ({ proposal, open, onOpenChange, onSent, reviewProfil
   const handleSend = async () => {
     if (!p || !to) return;
 
-    if (!rp?.review_link) {
+    const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRe.test(to.trim())) {
       setStatus("error");
-      setErrorMsg("Please add your Review Link in Settings first.");
+      setErrorMsg("A valid client email is required.");
+      return;
+    }
+
+    if (!rp?.review_link?.trim()) {
+      setStatus("error");
+      setErrorMsg("Add your Review Link in Settings to send review requests.");
       return;
     }
 

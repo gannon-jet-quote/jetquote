@@ -104,8 +104,25 @@ const PaymentRequestModal = ({ proposal, open, onOpenChange, onSent, paymentProf
     }
   }, [open, p?.id]);
 
+  const validate = (): string | null => {
+    const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!to?.trim() || !emailRe.test(to.trim())) return "A valid client email is required.";
+    if (!pp?.payment_method_name?.trim() || !pp?.payment_link_or_instructions?.trim()) {
+      return "Add Payment Preferences in Settings to send payment requests.";
+    }
+    return null;
+  };
+
+  const validationError = p ? validate() : null;
+
   const handleSend = async () => {
     if (!p || !to) return;
+    const err = validate();
+    if (err) {
+      setStatus("error");
+      setErrorMsg(err);
+      return;
+    }
     setStatus("sending");
     setErrorMsg("");
 
@@ -203,7 +220,7 @@ const PaymentRequestModal = ({ proposal, open, onOpenChange, onSent, paymentProf
               </button>
               <button
                 onClick={handleSend}
-                disabled={status === "sending" || !to}
+                disabled={status === "sending" || !to || !!validationError}
                 className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2 text-sm font-medium text-primary-foreground transition-all hover:brightness-110 disabled:opacity-50"
               >
                 {status === "sending" ? (

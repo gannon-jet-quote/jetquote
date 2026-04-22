@@ -79,8 +79,29 @@ const SendEmailModal = ({ proposal, open, onOpenChange, onSent, userName }: Prop
     onOpenChange(isOpen);
   };
 
+  const validateProposal = (): string | null => {
+    if (!p) return "Proposal not loaded.";
+    if (!p.client_name?.trim()) return "Client name is required.";
+    const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!to?.trim() || !emailRe.test(to.trim())) return "A valid client email is required.";
+    if (!p.service_type?.trim()) return "Service type is missing on this proposal.";
+    if (!p.service_address?.trim()) return "Service address is missing on this proposal.";
+    const priceStr = (p.total_price_formatted || "").replace(/[^0-9.]/g, "");
+    const priceNum = parseFloat(priceStr);
+    if (!priceNum || priceNum <= 0) return "Total price must be greater than 0.";
+    return null;
+  };
+
+  const validationError = p ? validateProposal() : null;
+
   const handleSend = async () => {
     if (!p || !to) return;
+    const err = validateProposal();
+    if (err) {
+      setStatus("error");
+      setErrorMsg(err);
+      return;
+    }
     setStatus("sending");
     setErrorMsg("");
 
@@ -171,6 +192,12 @@ const SendEmailModal = ({ proposal, open, onOpenChange, onSent, userName }: Prop
           </div>
         ) : (
           <div className="space-y-4">
+            {validationError && (
+              <div className="flex items-center gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-600 dark:text-amber-400">
+                <XCircle className="h-4 w-4 shrink-0" />
+                {validationError}
+              </div>
+            )}
             <div className="space-y-2">
               <Label className="text-secondary-foreground">To</Label>
               <Input
@@ -215,7 +242,7 @@ const SendEmailModal = ({ proposal, open, onOpenChange, onSent, userName }: Prop
               </button>
               <button
                 onClick={handleSend}
-                disabled={status === "sending" || !to}
+                disabled={status === "sending" || !to || !!validationError}
                 className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2 text-sm font-medium text-primary-foreground transition-all hover:brightness-110 disabled:opacity-50"
               >
                 {status === "sending" ? (
