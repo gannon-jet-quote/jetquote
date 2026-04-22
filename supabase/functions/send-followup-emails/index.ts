@@ -42,17 +42,19 @@ Deno.serve(async (req) => {
     const now = new Date().toISOString();
     let query = supabase
       .from("proposals")
-      .select("id, client_name, client_email, public_token, user_id, branding, followup_sent_at")
-      .not("client_email", "is", null);
+      .select("id, client_name, client_email, public_token, user_id, branding, followup_sent_at, status, accepted_at, declined_at")
+      .not("client_email", "is", null)
+      .eq("status", "sent")
+      .is("accepted_at", null)
+      .is("declined_at", null);
 
     if (manualProposalId) {
-      // Manual trigger: send for this proposal regardless of schedule/enabled flag
-      // (allows resend even if already sent)
+      // Manual trigger: still requires sent + not responded + has email,
+      // but bypasses schedule and the once-only rule (allows resend).
       query = query.eq("id", manualProposalId);
     } else {
       // Scheduled (cron) trigger: only un-sent, eligible, due proposals
       query = query
-        .eq("status", "sent")
         .eq("followup_enabled", true)
         .is("followup_sent_at", null)
         .not("followup_scheduled_for", "is", null)
