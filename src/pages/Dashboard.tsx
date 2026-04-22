@@ -24,7 +24,9 @@ import ReviewRequestModal from "@/components/ReviewRequestModal";
 import ProposalStepper, { getStepState } from "@/components/ProposalStepper";
 import { usePlan } from "@/hooks/usePlan";
 import { openUpgradeModal } from "@/lib/upgradeModal";
+import { openSetupPrompt } from "@/lib/setupPrompt";
 import { Sparkles } from "lucide-react";
+import SetupChecklist from "@/components/SetupChecklist";
 
 interface Proposal {
   id: string;
@@ -333,6 +335,8 @@ const Dashboard = () => {
               </Link>
             </div>
           </div>
+
+          <SetupChecklist />
 
           {/* Plan card */}
           <div className="mb-6 flex flex-col gap-3 rounded-xl border border-border bg-card p-4 sm:flex-row sm:items-center sm:justify-between">
@@ -774,7 +778,7 @@ const Dashboard = () => {
                         </button>
                       );
                     } else if (current === "completed") {
-                      const paymentDisabled = !hasClientEmail || (isPro && !hasPaymentPrefs);
+                      const paymentDisabled = !hasClientEmail;
                       const paymentTitle = !isPro
                         ? "Payment requests are a Pro feature. Upgrade to send."
                         : !hasClientEmail
@@ -790,6 +794,15 @@ const Dashboard = () => {
                           onClick={() => {
                             if (!isPro) {
                               openUpgradeModal("Payment requests");
+                              return;
+                            }
+                            if (!hasPaymentPrefs) {
+                              openSetupPrompt({
+                                title: "Add a payment method to send payment requests",
+                                description: "Set your payment method name and link or instructions in Settings before sending a payment request.",
+                                ctaLabel: "Open Settings",
+                                ctaHref: "/settings",
+                              });
                               return;
                             }
                             setPaymentProposal(p);
@@ -815,7 +828,7 @@ const Dashboard = () => {
                         );
                       }
                     } else if (current === "paid") {
-                      const reviewDisabled = !hasClientEmail || (isPro && !hasReviewLink);
+                      const reviewDisabled = !hasClientEmail;
                       const reviewTitle = !isPro
                         ? "Review requests are a Pro feature. Upgrade to send."
                         : !hasClientEmail
@@ -831,6 +844,15 @@ const Dashboard = () => {
                               openUpgradeModal("Review requests");
                               return;
                             }
+                            if (!hasReviewLink) {
+                              openSetupPrompt({
+                                title: "Add a review link to send review requests",
+                                description: "Set your review platform link in Settings before sending a review request.",
+                                ctaLabel: "Open Settings",
+                                ctaHref: "/settings",
+                              });
+                              return;
+                            }
                             setReviewProposal(p);
                           }}
                           disabled={reviewDisabled}
@@ -842,7 +864,7 @@ const Dashboard = () => {
                         </button>
                       );
                     } else if (current === "review") {
-                      const reviewDisabled = !hasClientEmail || (isPro && !hasReviewLink);
+                      const reviewDisabled = !hasClientEmail;
                       const reviewTitle = !isPro
                         ? "Review requests are a Pro feature. Upgrade to resend."
                         : !hasClientEmail
@@ -856,6 +878,15 @@ const Dashboard = () => {
                           onClick={() => {
                             if (!isPro) {
                               openUpgradeModal("Review requests");
+                              return;
+                            }
+                            if (!hasReviewLink) {
+                              openSetupPrompt({
+                                title: "Add a review link to send review requests",
+                                description: "Set your review platform link in Settings before resending a review request.",
+                                ctaLabel: "Open Settings",
+                                ctaHref: "/settings",
+                              });
                               return;
                             }
                             setReviewProposal(p);
