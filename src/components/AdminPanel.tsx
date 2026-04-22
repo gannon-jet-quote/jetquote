@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   Table, TableHeader, TableBody, TableRow, TableHead, TableCell,
 } from "@/components/ui/table";
+import AdminHealthCheck from "@/components/AdminHealthCheck";
 
 interface UserRow {
   user_id: string;
@@ -269,6 +270,9 @@ const AdminPanel = ({ open, onClose }: AdminPanelProps) => {
               ) : (
                 /* Main Admin View */
                 <div className="space-y-6">
+                  {/* Health Check */}
+                  <AdminHealthCheck />
+
                   {/* Metrics */}
                   <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-5">
                     {statCards.map((s) => (
