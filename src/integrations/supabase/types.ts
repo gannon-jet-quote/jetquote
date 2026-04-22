@@ -151,6 +151,7 @@ export type Database = {
           payment_link_or_instructions: string | null
           payment_method_name: string | null
           payment_note: string | null
+          plan: string
           primary_service_type: string | null
           review_link: string | null
           review_platform: string | null
@@ -171,6 +172,7 @@ export type Database = {
           payment_link_or_instructions?: string | null
           payment_method_name?: string | null
           payment_note?: string | null
+          plan?: string
           primary_service_type?: string | null
           review_link?: string | null
           review_platform?: string | null
@@ -191,6 +193,7 @@ export type Database = {
           payment_link_or_instructions?: string | null
           payment_method_name?: string | null
           payment_note?: string | null
+          plan?: string
           primary_service_type?: string | null
           review_link?: string | null
           review_platform?: string | null

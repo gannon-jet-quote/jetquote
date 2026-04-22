@@ -17,7 +17,9 @@ import AdminDashboard from "./pages/AdminDashboard";
 import AdminUserDetail from "./pages/AdminUserDetail";
 import ProposalRespond from "./pages/ProposalRespond";
 import QuoteRequest from "./pages/QuoteRequest";
+import Pricing from "./pages/Pricing";
 import NotFound from "./pages/NotFound";
+import UpgradeModal from "@/components/UpgradeModal";
 
 const queryClient = new QueryClient();
 
@@ -27,6 +29,7 @@ const App = () => (
       <TooltipProvider>
         <Toaster />
         <Sonner />
+        <UpgradeModal />
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
@@ -75,6 +78,7 @@ const App = () => (
             />
             <Route path="/proposal/respond/:token" element={<ProposalRespond />} />
             <Route path="/request/:username" element={<QuoteRequest />} />
+            <Route path="/pricing" element={<Pricing />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

@@ -22,6 +22,9 @@ import SendEmailModal from "@/components/SendEmailModal";
 import PaymentRequestModal from "@/components/PaymentRequestModal";
 import ReviewRequestModal from "@/components/ReviewRequestModal";
 import ProposalStepper, { getStepState } from "@/components/ProposalStepper";
+import { usePlan } from "@/hooks/usePlan";
+import { openUpgradeModal } from "@/lib/upgradeModal";
+import { Sparkles } from "lucide-react";
 
 interface Proposal {
   id: string;
@@ -63,6 +66,7 @@ const Dashboard = () => {
   const { user, profile } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { isPro, sentThisMonth: planSentMonth, freeLimit, atFreeLimit } = usePlan();
   const [proposals, setProposals] = useState<Proposal[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -303,7 +307,7 @@ const Dashboard = () => {
       <Navbar />
       <div className="container mx-auto max-w-4xl px-6 pt-24 pb-16">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-          <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h1 className="font-display text-3xl font-bold text-foreground">My Proposals</h1>
               <p className="text-muted-foreground">Manage and download your saved proposals.</p>
@@ -328,6 +332,40 @@ const Dashboard = () => {
                 <Plus className="h-4 w-4" /> New Proposal
               </Link>
             </div>
+          </div>
+
+          {/* Plan card */}
+          <div className="mb-6 flex flex-col gap-3 rounded-xl border border-border bg-card p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-3">
+              <div className={`flex h-9 w-9 items-center justify-center rounded-lg ${isPro ? "bg-primary/10" : "bg-muted"}`}>
+                <Sparkles className={`h-4 w-4 ${isPro ? "text-primary" : "text-muted-foreground"}`} />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-foreground">
+                  {isPro ? "Pro plan" : "Free plan"}
+                </p>
+                {!isPro ? (
+                  <p className="text-xs text-muted-foreground">
+                    {Math.min(planSentMonth, freeLimit)} of {freeLimit} proposals sent this month
+                    {atFreeLimit ? " — limit reached" : ""}
+                  </p>
+                ) : (
+                  <p className="text-xs text-muted-foreground">Unlimited sends, follow-ups, payments & reviews</p>
+                )}
+              </div>
+            </div>
+            {isPro ? (
+              <span className="inline-flex items-center gap-1 self-start rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-medium text-primary sm:self-auto">
+                <Sparkles className="h-3 w-3" /> Pro Active
+              </span>
+            ) : (
+              <Link
+                to="/pricing"
+                className="inline-flex items-center gap-1.5 self-start rounded-lg bg-primary px-4 py-2 text-xs font-medium text-primary-foreground transition-all hover:brightness-110 sm:self-auto"
+              >
+                <Sparkles className="h-3.5 w-3.5" /> Upgrade to Pro
+              </Link>
+            )}
           </div>
 
           <div className="mb-8 space-y-4">
@@ -534,6 +572,10 @@ const Dashboard = () => {
                     <div className="mt-3 flex items-center gap-2">
                       <button
                         onClick={async () => {
+                          if (!isPro) {
+                            openUpgradeModal("Auto follow-up emails");
+                            return;
+                          }
                           const newVal = !p.followup_enabled;
                           await supabase
                             .from("proposals")
@@ -551,19 +593,21 @@ const Dashboard = () => {
                           );
                           toast({ title: newVal ? "Follow-up enabled" : "Follow-up disabled" });
                         }}
+                        title={isPro ? "Toggle auto follow-up" : "Auto follow-up is a Pro feature"}
                         className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors"
                       >
                         <div
                           className={`flex h-4 w-4 items-center justify-center rounded border transition-colors ${
-                            p.followup_enabled
+                            isPro && p.followup_enabled
                               ? "border-primary bg-primary text-primary-foreground"
                               : "border-muted-foreground/40 bg-transparent"
                           }`}
                         >
-                          {p.followup_enabled && <CheckCircle className="h-3 w-3" />}
+                          {isPro && p.followup_enabled && <CheckCircle className="h-3 w-3" />}
                         </div>
                         <Clock className="h-3.5 w-3.5" />
                         <span>Auto-follow up in 48 hours if no response</span>
+                        {!isPro && <Sparkles className="h-3 w-3 text-primary" />}
                       </button>
                       {p.followup_sent_at && (
                         <span className="ml-2 rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-xs text-primary">
@@ -624,6 +668,7 @@ const Dashboard = () => {
                         </button>
                       );
                     } else if (current === "draft") {
+                      const sendBlocked = !isPro && atFreeLimit;
                       ctas.push(
                         <button
                           key="edit"
@@ -635,21 +680,47 @@ const Dashboard = () => {
                         </button>,
                         <button
                           key="send"
-                          onClick={() => setEmailProposal(p)}
+                          onClick={() => {
+                            if (sendBlocked) {
+                              openUpgradeModal(`You've used all ${freeLimit} free proposal sends this month`);
+                              return;
+                            }
+                            setEmailProposal(p);
+                          }}
                           disabled={!hasClientEmail}
-                          title={hasClientEmail ? "Send proposal to client" : "Add a client email to send this proposal"}
+                          title={
+                            !hasClientEmail
+                              ? "Add a client email to send this proposal"
+                              : sendBlocked
+                                ? `Free plan limit reached (${freeLimit}/mo). Upgrade to Pro for unlimited sends.`
+                                : "Send proposal to client"
+                          }
                           className={primaryBtn}
                         >
                           <Mail className="h-3.5 w-3.5" /> Send Proposal
+                          {sendBlocked && hasClientEmail && <Sparkles className="h-3 w-3" />}
                         </button>
                       );
                     } else if (current === "sent") {
+                      const sendBlocked = !isPro && atFreeLimit;
                       ctas.push(
                         <button
                           key="resend"
-                          onClick={() => setEmailProposal(p)}
+                          onClick={() => {
+                            if (sendBlocked) {
+                              openUpgradeModal(`You've used all ${freeLimit} free proposal sends this month`);
+                              return;
+                            }
+                            setEmailProposal(p);
+                          }}
                           disabled={!hasClientEmail}
-                          title={hasClientEmail ? "Resend the proposal email" : "Add a client email to resend"}
+                          title={
+                            !hasClientEmail
+                              ? "Add a client email to resend"
+                              : sendBlocked
+                                ? "Free plan limit reached. Upgrade to Pro to resend."
+                                : "Resend the proposal email"
+                          }
                           className={secondaryBtn}
                         >
                           <RotateCw className="h-3.5 w-3.5" /> Resend Proposal
@@ -661,12 +732,20 @@ const Dashboard = () => {
                         ctas.push(
                           <button
                             key="followup"
-                            onClick={() => handleSendFollowupNow(p)}
+                            onClick={() => {
+                              if (!isPro) {
+                                openUpgradeModal("Manual follow-up sending");
+                                return;
+                              }
+                              handleSendFollowupNow(p);
+                            }}
                             disabled={followupDisabled}
                             title={
-                              !hasClientEmail
-                                ? "Add a client email to send a follow-up"
-                                : "Send the follow-up email now"
+                              !isPro
+                                ? "Follow-ups are a Pro feature. Upgrade to send."
+                                : !hasClientEmail
+                                  ? "Add a client email to send a follow-up"
+                                  : "Send the follow-up email now"
                             }
                             className={primaryBtn}
                           >
@@ -677,6 +756,7 @@ const Dashboard = () => {
                             ) : (
                               <>
                                 <Bell className="h-3.5 w-3.5" /> Send Follow-Up Now
+                                {!isPro && <Sparkles className="h-3 w-3" />}
                               </>
                             )}
                           </button>
@@ -694,23 +774,32 @@ const Dashboard = () => {
                         </button>
                       );
                     } else if (current === "completed") {
-                      const paymentDisabled = !hasClientEmail || !hasPaymentPrefs;
-                      const paymentTitle = !hasClientEmail
-                        ? "Add a client email to send a payment request"
-                        : !hasPaymentPrefs
-                          ? "Add Payment Preferences in Settings to send payment requests"
-                          : p.payment_request_sent_at
-                            ? "Resend the payment request"
-                            : "Send a payment request to the client";
+                      const paymentDisabled = !hasClientEmail || (isPro && !hasPaymentPrefs);
+                      const paymentTitle = !isPro
+                        ? "Payment requests are a Pro feature. Upgrade to send."
+                        : !hasClientEmail
+                          ? "Add a client email to send a payment request"
+                          : !hasPaymentPrefs
+                            ? "Add Payment Preferences in Settings to send payment requests"
+                            : p.payment_request_sent_at
+                              ? "Resend the payment request"
+                              : "Send a payment request to the client";
                       ctas.push(
                         <button
                           key="payment"
-                          onClick={() => setPaymentProposal(p)}
+                          onClick={() => {
+                            if (!isPro) {
+                              openUpgradeModal("Payment requests");
+                              return;
+                            }
+                            setPaymentProposal(p);
+                          }}
                           disabled={paymentDisabled}
                           title={paymentTitle}
                           className={primaryBtn}
                         >
                           <BadgeDollarSign className="h-3.5 w-3.5" /> {p.payment_request_sent_at ? "Resend Payment Request" : "Send Payment Request"}
+                          {!isPro && <Sparkles className="h-3 w-3" />}
                         </button>
                       );
                       if (p.payment_status === "requested") {
@@ -726,34 +815,51 @@ const Dashboard = () => {
                         );
                       }
                     } else if (current === "paid") {
-                      const reviewDisabled = !hasClientEmail || !hasReviewLink;
-                      const reviewTitle = !hasClientEmail
-                        ? "Add a client email to send a review request"
-                        : !hasReviewLink
-                          ? "Add your Review Link in Settings to send review requests"
-                          : "Send a review request to the client";
+                      const reviewDisabled = !hasClientEmail || (isPro && !hasReviewLink);
+                      const reviewTitle = !isPro
+                        ? "Review requests are a Pro feature. Upgrade to send."
+                        : !hasClientEmail
+                          ? "Add a client email to send a review request"
+                          : !hasReviewLink
+                            ? "Add your Review Link in Settings to send review requests"
+                            : "Send a review request to the client";
                       ctas.push(
                         <button
                           key="review"
-                          onClick={() => setReviewProposal(p)}
+                          onClick={() => {
+                            if (!isPro) {
+                              openUpgradeModal("Review requests");
+                              return;
+                            }
+                            setReviewProposal(p);
+                          }}
                           disabled={reviewDisabled}
                           title={reviewTitle}
                           className={primaryBtn}
                         >
                           <Star className="h-3.5 w-3.5" /> Send Review Request
+                          {!isPro && <Sparkles className="h-3 w-3" />}
                         </button>
                       );
                     } else if (current === "review") {
-                      const reviewDisabled = !hasClientEmail || !hasReviewLink;
-                      const reviewTitle = !hasClientEmail
-                        ? "Add a client email to resend"
-                        : !hasReviewLink
-                          ? "Add your Review Link in Settings to resend"
-                          : "Resend the review request";
+                      const reviewDisabled = !hasClientEmail || (isPro && !hasReviewLink);
+                      const reviewTitle = !isPro
+                        ? "Review requests are a Pro feature. Upgrade to resend."
+                        : !hasClientEmail
+                          ? "Add a client email to resend"
+                          : !hasReviewLink
+                            ? "Add your Review Link in Settings to resend"
+                            : "Resend the review request";
                       ctas.push(
                         <button
                           key="resend-review"
-                          onClick={() => setReviewProposal(p)}
+                          onClick={() => {
+                            if (!isPro) {
+                              openUpgradeModal("Review requests");
+                              return;
+                            }
+                            setReviewProposal(p);
+                          }}
                           disabled={reviewDisabled}
                           title={reviewTitle}
                           className={secondaryBtn}
