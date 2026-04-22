@@ -372,82 +372,75 @@ const Dashboard = () => {
             )}
           </div>
 
-          <div className="mb-8 space-y-4">
-            {/* Row 1 */}
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div className="rounded-xl border border-border bg-card p-5">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
-                    <Send className="h-4 w-4 text-primary" />
-                  </div>
-                  <p className="text-sm text-muted-foreground">Sent This Month</p>
+          <div className="mb-8 space-y-3">
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-5">
+              {/* Sent This Month */}
+              <div className="rounded-lg border border-border bg-card px-3 py-2.5">
+                <div className="flex items-center gap-1.5 text-muted-foreground">
+                  <Send className="h-3.5 w-3.5 text-primary" />
+                  <p className="text-xs truncate">Sent This Month</p>
                 </div>
-                <p className="mt-3 font-display text-2xl font-bold text-foreground">{sentThisMonth}</p>
+                <p className="mt-1 font-display text-xl font-bold text-foreground leading-tight">{sentThisMonth}</p>
               </div>
-              <div className="rounded-xl border border-border bg-card p-5">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
-                    <TrendingUp className="h-4 w-4 text-primary" />
-                  </div>
-                  <p className="text-sm text-muted-foreground">Acceptance Rate (This Month)</p>
+
+              {/* Acceptance Rate */}
+              <div className="rounded-lg border border-border bg-card px-3 py-2.5">
+                <div className="flex items-center gap-1.5 text-muted-foreground">
+                  <TrendingUp className="h-3.5 w-3.5 text-primary" />
+                  <p className="text-xs truncate">Acceptance Rate</p>
                 </div>
-                <div className="mt-3 flex items-baseline gap-2">
-                  <CheckCircle className="h-5 w-5 text-green-500" />
-                  <span className="font-display text-2xl font-bold text-foreground">{fmtPct(acceptanceRateMonth)}</span>
+                <div className="mt-1 flex items-baseline gap-1.5">
+                  <CheckCircle className="h-4 w-4 text-green-500" />
+                  <span className="font-display text-xl font-bold text-foreground leading-tight">{fmtPct(acceptanceRateMonth)}</span>
                 </div>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Decline rate: {fmtPct(declineRateMonth)}
+                <p className="mt-0.5 text-[10px] text-muted-foreground">
+                  Decline: {fmtPct(declineRateMonth)}
                 </p>
               </div>
-            </div>
-            {/* Row 2 */}
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div className="rounded-xl border border-border bg-card p-5">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
-                    <DollarSign className="h-4 w-4 text-primary" />
-                  </div>
-                  <p className="text-sm text-muted-foreground">Won This Month</p>
+
+              {/* Won This Month */}
+              <div className="rounded-lg border border-border bg-card px-3 py-2.5">
+                <div className="flex items-center gap-1.5 text-muted-foreground">
+                  <DollarSign className="h-3.5 w-3.5 text-primary" />
+                  <p className="text-xs truncate">Won This Month</p>
                 </div>
-                <p className="mt-3 font-display text-2xl font-bold text-foreground">{fmtCurrency(wonThisMonth)}</p>
+                <p className="mt-1 font-display text-xl font-bold text-foreground leading-tight">{fmtCurrency(wonThisMonth)}</p>
               </div>
-              <div className="rounded-xl border border-border bg-card p-5">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
-                    <CheckCircle className="h-4 w-4 text-primary" />
-                  </div>
-                  <p className="text-sm text-muted-foreground">Won All-Time</p>
+
+              {/* Won All-Time */}
+              <div className="rounded-lg border border-border bg-card px-3 py-2.5">
+                <div className="flex items-center gap-1.5 text-muted-foreground">
+                  <CheckCircle className="h-3.5 w-3.5 text-primary" />
+                  <p className="text-xs truncate">Won All-Time</p>
                 </div>
-                <p className="mt-3 font-display text-2xl font-bold text-foreground">{fmtCurrency(wonAllTime)}</p>
+                <p className="mt-1 font-display text-xl font-bold text-foreground leading-tight">{fmtCurrency(wonAllTime)}</p>
+              </div>
+
+              {/* Avg Job Value */}
+              <div className="rounded-lg border border-border bg-card px-3 py-2.5">
+                <div className="flex items-center gap-1.5 text-muted-foreground">
+                  <TrendingUp className="h-3.5 w-3.5 text-primary" />
+                  <p className="text-xs truncate">Avg Job Value</p>
+                </div>
+                <p className="mt-1 font-display text-xl font-bold text-foreground leading-tight">{fmtCurrency(avgJobValue)}</p>
               </div>
             </div>
-            {/* Row 3 */}
-            <div className="rounded-xl border border-border bg-card p-5">
-              <div className="flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
-                  <TrendingUp className="h-4 w-4 text-primary" />
-                </div>
-                <p className="text-sm text-muted-foreground">Avg Job Value (All-Time)</p>
-              </div>
-              <p className="mt-3 font-display text-2xl font-bold text-foreground">{fmtCurrency(avgJobValue)}</p>
-            </div>
+
             {/* More metrics collapsible */}
             <div>
               <button
                 onClick={() => setShowMoreMetrics(!showMoreMetrics)}
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                className="text-xs text-muted-foreground hover:text-foreground transition-colors"
               >
                 {showMoreMetrics ? "Hide" : "More metrics ›"}
               </button>
               {showMoreMetrics && (
-                <div className="mt-3 rounded-xl border border-border bg-card p-5">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
-                      <DollarSign className="h-4 w-4 text-primary" />
-                    </div>
-                    <p className="text-sm text-muted-foreground">Total Value of All Proposals</p>
+                <div className="mt-2 rounded-lg border border-border bg-card px-3 py-2.5 max-w-xs">
+                  <div className="flex items-center gap-1.5 text-muted-foreground">
+                    <DollarSign className="h-3.5 w-3.5 text-primary" />
+                    <p className="text-xs truncate">Total Value of All Proposals</p>
                   </div>
-                  <p className="mt-3 font-display text-2xl font-bold text-foreground">{fmtCurrency(totalValue)}</p>
+                  <p className="mt-1 font-display text-xl font-bold text-foreground leading-tight">{fmtCurrency(totalValue)}</p>
                 </div>
               )}
             </div>
