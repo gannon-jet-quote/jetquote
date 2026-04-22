@@ -74,6 +74,32 @@ const Dashboard = () => {
   const [followupSendingId, setFollowupSendingId] = useState<string | null>(null);
 
   const handleSendFollowupNow = async (p: Proposal) => {
+    // Guardrails: only allow follow-up for sent proposals with a client email,
+    // and never for accepted/declined ones.
+    if (p.status !== "sent") {
+      toast({
+        title: "Can't send follow-up",
+        description: "Follow-ups can only be sent for proposals in the Sent state.",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (p.accepted_at || p.declined_at) {
+      toast({
+        title: "Can't send follow-up",
+        description: "This proposal has already been responded to.",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (!p.client_email?.trim()) {
+      toast({
+        title: "Missing client email",
+        description: "Add a client email to this proposal before sending a follow-up.",
+        variant: "destructive",
+      });
+      return;
+    }
     setFollowupSendingId(p.id);
     try {
       const { data, error } = await supabase.functions.invoke("send-followup-emails", {

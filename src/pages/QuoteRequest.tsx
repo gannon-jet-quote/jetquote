@@ -80,7 +80,27 @@ const QuoteRequest = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const lockedServiceType = business?.primary_service_type || "";
-    if (!clientName.trim() || !clientEmail.trim() || !lockedServiceType || !propertyAddress.trim() || !projectDescription.trim()) {
+    if (!clientName.trim()) {
+      toast({ title: "Please enter your name", variant: "destructive" });
+      return;
+    }
+    if (!clientEmail.trim() && !clientPhone.trim()) {
+      toast({
+        title: "Contact info required",
+        description: "Please provide at least an email or phone number so we can reach you.",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (clientEmail.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(clientEmail.trim())) {
+      toast({ title: "Please enter a valid email", variant: "destructive" });
+      return;
+    }
+    if (!lockedServiceType) {
+      toast({ title: "This business hasn't configured a service type yet", variant: "destructive" });
+      return;
+    }
+    if (!propertyAddress.trim() || !projectDescription.trim()) {
       toast({ title: "Please fill in all required fields", variant: "destructive" });
       return;
     }
