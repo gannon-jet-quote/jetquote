@@ -662,6 +662,7 @@ const Dashboard = () => {
                         </button>
                       );
                     } else if (current === "draft") {
+                      const sendBlocked = !isPro && atFreeLimit;
                       ctas.push(
                         <button
                           key="edit"
@@ -673,21 +674,47 @@ const Dashboard = () => {
                         </button>,
                         <button
                           key="send"
-                          onClick={() => setEmailProposal(p)}
+                          onClick={() => {
+                            if (sendBlocked) {
+                              openUpgradeModal(`You've used all ${freeLimit} free proposal sends this month`);
+                              return;
+                            }
+                            setEmailProposal(p);
+                          }}
                           disabled={!hasClientEmail}
-                          title={hasClientEmail ? "Send proposal to client" : "Add a client email to send this proposal"}
+                          title={
+                            !hasClientEmail
+                              ? "Add a client email to send this proposal"
+                              : sendBlocked
+                                ? `Free plan limit reached (${freeLimit}/mo). Upgrade to Pro for unlimited sends.`
+                                : "Send proposal to client"
+                          }
                           className={primaryBtn}
                         >
                           <Mail className="h-3.5 w-3.5" /> Send Proposal
+                          {sendBlocked && hasClientEmail && <Sparkles className="h-3 w-3" />}
                         </button>
                       );
                     } else if (current === "sent") {
+                      const sendBlocked = !isPro && atFreeLimit;
                       ctas.push(
                         <button
                           key="resend"
-                          onClick={() => setEmailProposal(p)}
+                          onClick={() => {
+                            if (sendBlocked) {
+                              openUpgradeModal(`You've used all ${freeLimit} free proposal sends this month`);
+                              return;
+                            }
+                            setEmailProposal(p);
+                          }}
                           disabled={!hasClientEmail}
-                          title={hasClientEmail ? "Resend the proposal email" : "Add a client email to resend"}
+                          title={
+                            !hasClientEmail
+                              ? "Add a client email to resend"
+                              : sendBlocked
+                                ? "Free plan limit reached. Upgrade to Pro to resend."
+                                : "Resend the proposal email"
+                          }
                           className={secondaryBtn}
                         >
                           <RotateCw className="h-3.5 w-3.5" /> Resend Proposal
@@ -699,12 +726,20 @@ const Dashboard = () => {
                         ctas.push(
                           <button
                             key="followup"
-                            onClick={() => handleSendFollowupNow(p)}
+                            onClick={() => {
+                              if (!isPro) {
+                                openUpgradeModal("Manual follow-up sending");
+                                return;
+                              }
+                              handleSendFollowupNow(p);
+                            }}
                             disabled={followupDisabled}
                             title={
-                              !hasClientEmail
-                                ? "Add a client email to send a follow-up"
-                                : "Send the follow-up email now"
+                              !isPro
+                                ? "Follow-ups are a Pro feature. Upgrade to send."
+                                : !hasClientEmail
+                                  ? "Add a client email to send a follow-up"
+                                  : "Send the follow-up email now"
                             }
                             className={primaryBtn}
                           >
@@ -715,6 +750,7 @@ const Dashboard = () => {
                             ) : (
                               <>
                                 <Bell className="h-3.5 w-3.5" /> Send Follow-Up Now
+                                {!isPro && <Sparkles className="h-3 w-3" />}
                               </>
                             )}
                           </button>
