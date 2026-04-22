@@ -572,6 +572,10 @@ const Dashboard = () => {
                     <div className="mt-3 flex items-center gap-2">
                       <button
                         onClick={async () => {
+                          if (!isPro) {
+                            openUpgradeModal("Auto follow-up emails");
+                            return;
+                          }
                           const newVal = !p.followup_enabled;
                           await supabase
                             .from("proposals")
@@ -589,19 +593,21 @@ const Dashboard = () => {
                           );
                           toast({ title: newVal ? "Follow-up enabled" : "Follow-up disabled" });
                         }}
+                        title={isPro ? "Toggle auto follow-up" : "Auto follow-up is a Pro feature"}
                         className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors"
                       >
                         <div
                           className={`flex h-4 w-4 items-center justify-center rounded border transition-colors ${
-                            p.followup_enabled
+                            isPro && p.followup_enabled
                               ? "border-primary bg-primary text-primary-foreground"
                               : "border-muted-foreground/40 bg-transparent"
                           }`}
                         >
-                          {p.followup_enabled && <CheckCircle className="h-3 w-3" />}
+                          {isPro && p.followup_enabled && <CheckCircle className="h-3 w-3" />}
                         </div>
                         <Clock className="h-3.5 w-3.5" />
                         <span>Auto-follow up in 48 hours if no response</span>
+                        {!isPro && <Sparkles className="h-3 w-3 text-primary" />}
                       </button>
                       {p.followup_sent_at && (
                         <span className="ml-2 rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-xs text-primary">
