@@ -592,21 +592,53 @@ const Dashboard = () => {
                     const { current, isDeclined } = getStepState(p);
                     const ctas: React.ReactNode[] = [];
 
+                    const hasClientEmail = !!p.client_email?.trim();
+                    const hasReviewLink = !!reviewProfile?.review_link?.trim();
+                    const hasPaymentPrefs =
+                      !!paymentProfile?.payment_method_name?.trim() &&
+                      !!paymentProfile?.payment_link_or_instructions?.trim();
+
+                    const primaryBtn =
+                      "inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground transition-all hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:brightness-100";
+                    const secondaryBtn =
+                      "inline-flex items-center gap-1.5 rounded-lg border border-border bg-secondary px-3 py-1.5 text-xs font-medium text-secondary-foreground transition-colors hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-secondary";
+
                     if (isDeclined) {
-                      // No primary CTA for declined proposals
+                      // Declined branch: hide downstream steps; offer recovery actions
+                      ctas.push(
+                        <button
+                          key="resend-declined"
+                          onClick={() => setEmailProposal(p)}
+                          title="Resend the proposal email"
+                          className={secondaryBtn}
+                        >
+                          <RotateCw className="h-3.5 w-3.5" /> Resend Proposal
+                        </button>,
+                        <button
+                          key="duplicate-declined"
+                          onClick={() => handleDuplicate(p)}
+                          title="Create a new proposal based on this one"
+                          className={primaryBtn}
+                        >
+                          <Files className="h-3.5 w-3.5" /> Duplicate
+                        </button>
+                      );
                     } else if (current === "draft") {
                       ctas.push(
                         <button
                           key="edit"
                           onClick={() => handleEdit(p)}
-                          className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-secondary px-3 py-1.5 text-xs font-medium text-secondary-foreground transition-colors hover:bg-accent"
+                          title="Edit this draft"
+                          className={secondaryBtn}
                         >
                           <Pencil className="h-3.5 w-3.5" /> Edit
                         </button>,
                         <button
                           key="send"
                           onClick={() => setEmailProposal(p)}
-                          className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground transition-all hover:brightness-110"
+                          disabled={!hasClientEmail}
+                          title={hasClientEmail ? "Send proposal to client" : "Add a client email to send this proposal"}
+                          className={primaryBtn}
                         >
                           <Mail className="h-3.5 w-3.5" /> Send Proposal
                         </button>
@@ -616,48 +648,67 @@ const Dashboard = () => {
                         <button
                           key="resend"
                           onClick={() => setEmailProposal(p)}
-                          className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-secondary px-3 py-1.5 text-xs font-medium text-secondary-foreground transition-colors hover:bg-accent"
+                          disabled={!hasClientEmail}
+                          title={hasClientEmail ? "Resend the proposal email" : "Add a client email to resend"}
+                          className={secondaryBtn}
                         >
                           <RotateCw className="h-3.5 w-3.5" /> Resend Proposal
-                        </button>,
-                        <button
-                          key="followup"
-                          onClick={() => handleSendFollowupNow(p)}
-                          disabled={followupSendingId === p.id}
-                          title={p.followup_sent_at ? "Follow-up already sent — click to resend" : "Send the follow-up email now"}
-                          className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground transition-all hover:brightness-110 disabled:opacity-50"
-                        >
-                          {followupSendingId === p.id ? (
-                            <>
-                              <Loader2 className="h-3.5 w-3.5 animate-spin" /> Sending...
-                            </>
-                          ) : p.followup_sent_at ? (
-                            <>
-                              <RotateCw className="h-3.5 w-3.5" /> Resend Follow-Up
-                            </>
-                          ) : (
-                            <>
-                              <Bell className="h-3.5 w-3.5" /> Send Follow-Up Now
-                            </>
-                          )}
                         </button>
                       );
+                      // Only show Send Follow-Up Now if not already sent
+                      if (!p.followup_sent_at) {
+                        const followupDisabled = !hasClientEmail || followupSendingId === p.id;
+                        ctas.push(
+                          <button
+                            key="followup"
+                            onClick={() => handleSendFollowupNow(p)}
+                            disabled={followupDisabled}
+                            title={
+                              !hasClientEmail
+                                ? "Add a client email to send a follow-up"
+                                : "Send the follow-up email now"
+                            }
+                            className={primaryBtn}
+                          >
+                            {followupSendingId === p.id ? (
+                              <>
+                                <Loader2 className="h-3.5 w-3.5 animate-spin" /> Sending...
+                              </>
+                            ) : (
+                              <>
+                                <Bell className="h-3.5 w-3.5" /> Send Follow-Up Now
+                              </>
+                            )}
+                          </button>
+                        );
+                      }
                     } else if (current === "accepted") {
                       ctas.push(
                         <button
                           key="complete"
                           onClick={() => handleMarkComplete(p)}
-                          className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground transition-all hover:brightness-110"
+                          title="Mark this job as completed to unlock payment requests"
+                          className={primaryBtn}
                         >
                           <CircleCheckBig className="h-3.5 w-3.5" /> Mark Job Complete
                         </button>
                       );
                     } else if (current === "completed") {
+                      const paymentDisabled = !hasClientEmail || !hasPaymentPrefs;
+                      const paymentTitle = !hasClientEmail
+                        ? "Add a client email to send a payment request"
+                        : !hasPaymentPrefs
+                          ? "Add Payment Preferences in Settings to send payment requests"
+                          : p.payment_request_sent_at
+                            ? "Resend the payment request"
+                            : "Send a payment request to the client";
                       ctas.push(
                         <button
                           key="payment"
                           onClick={() => setPaymentProposal(p)}
-                          className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground transition-all hover:brightness-110"
+                          disabled={paymentDisabled}
+                          title={paymentTitle}
+                          className={primaryBtn}
                         >
                           <BadgeDollarSign className="h-3.5 w-3.5" /> {p.payment_request_sent_at ? "Resend Payment Request" : "Send Payment Request"}
                         </button>
@@ -667,28 +718,45 @@ const Dashboard = () => {
                           <button
                             key="markpaid"
                             onClick={() => handleMarkPaymentReceived(p)}
-                            className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-secondary px-3 py-1.5 text-xs font-medium text-secondary-foreground transition-colors hover:bg-accent"
+                            title="Record that payment has been received"
+                            className={secondaryBtn}
                           >
                             <CheckCircle className="h-3.5 w-3.5" /> Mark Payment Received
                           </button>
                         );
                       }
                     } else if (current === "paid") {
+                      const reviewDisabled = !hasClientEmail || !hasReviewLink;
+                      const reviewTitle = !hasClientEmail
+                        ? "Add a client email to send a review request"
+                        : !hasReviewLink
+                          ? "Add your Review Link in Settings to send review requests"
+                          : "Send a review request to the client";
                       ctas.push(
                         <button
                           key="review"
                           onClick={() => setReviewProposal(p)}
-                          className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground transition-all hover:brightness-110"
+                          disabled={reviewDisabled}
+                          title={reviewTitle}
+                          className={primaryBtn}
                         >
                           <Star className="h-3.5 w-3.5" /> Send Review Request
                         </button>
                       );
                     } else if (current === "review") {
+                      const reviewDisabled = !hasClientEmail || !hasReviewLink;
+                      const reviewTitle = !hasClientEmail
+                        ? "Add a client email to resend"
+                        : !hasReviewLink
+                          ? "Add your Review Link in Settings to resend"
+                          : "Resend the review request";
                       ctas.push(
                         <button
                           key="resend-review"
                           onClick={() => setReviewProposal(p)}
-                          className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-secondary px-3 py-1.5 text-xs font-medium text-secondary-foreground transition-colors hover:bg-accent"
+                          disabled={reviewDisabled}
+                          title={reviewTitle}
+                          className={secondaryBtn}
                         >
                           <RotateCw className="h-3.5 w-3.5" /> Resend Review Request
                         </button>
