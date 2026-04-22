@@ -768,23 +768,32 @@ const Dashboard = () => {
                         </button>
                       );
                     } else if (current === "completed") {
-                      const paymentDisabled = !hasClientEmail || !hasPaymentPrefs;
-                      const paymentTitle = !hasClientEmail
-                        ? "Add a client email to send a payment request"
-                        : !hasPaymentPrefs
-                          ? "Add Payment Preferences in Settings to send payment requests"
-                          : p.payment_request_sent_at
-                            ? "Resend the payment request"
-                            : "Send a payment request to the client";
+                      const paymentDisabled = !hasClientEmail || (isPro && !hasPaymentPrefs);
+                      const paymentTitle = !isPro
+                        ? "Payment requests are a Pro feature. Upgrade to send."
+                        : !hasClientEmail
+                          ? "Add a client email to send a payment request"
+                          : !hasPaymentPrefs
+                            ? "Add Payment Preferences in Settings to send payment requests"
+                            : p.payment_request_sent_at
+                              ? "Resend the payment request"
+                              : "Send a payment request to the client";
                       ctas.push(
                         <button
                           key="payment"
-                          onClick={() => setPaymentProposal(p)}
+                          onClick={() => {
+                            if (!isPro) {
+                              openUpgradeModal("Payment requests");
+                              return;
+                            }
+                            setPaymentProposal(p);
+                          }}
                           disabled={paymentDisabled}
                           title={paymentTitle}
                           className={primaryBtn}
                         >
                           <BadgeDollarSign className="h-3.5 w-3.5" /> {p.payment_request_sent_at ? "Resend Payment Request" : "Send Payment Request"}
+                          {!isPro && <Sparkles className="h-3 w-3" />}
                         </button>
                       );
                       if (p.payment_status === "requested") {
@@ -800,34 +809,51 @@ const Dashboard = () => {
                         );
                       }
                     } else if (current === "paid") {
-                      const reviewDisabled = !hasClientEmail || !hasReviewLink;
-                      const reviewTitle = !hasClientEmail
-                        ? "Add a client email to send a review request"
-                        : !hasReviewLink
-                          ? "Add your Review Link in Settings to send review requests"
-                          : "Send a review request to the client";
+                      const reviewDisabled = !hasClientEmail || (isPro && !hasReviewLink);
+                      const reviewTitle = !isPro
+                        ? "Review requests are a Pro feature. Upgrade to send."
+                        : !hasClientEmail
+                          ? "Add a client email to send a review request"
+                          : !hasReviewLink
+                            ? "Add your Review Link in Settings to send review requests"
+                            : "Send a review request to the client";
                       ctas.push(
                         <button
                           key="review"
-                          onClick={() => setReviewProposal(p)}
+                          onClick={() => {
+                            if (!isPro) {
+                              openUpgradeModal("Review requests");
+                              return;
+                            }
+                            setReviewProposal(p);
+                          }}
                           disabled={reviewDisabled}
                           title={reviewTitle}
                           className={primaryBtn}
                         >
                           <Star className="h-3.5 w-3.5" /> Send Review Request
+                          {!isPro && <Sparkles className="h-3 w-3" />}
                         </button>
                       );
                     } else if (current === "review") {
-                      const reviewDisabled = !hasClientEmail || !hasReviewLink;
-                      const reviewTitle = !hasClientEmail
-                        ? "Add a client email to resend"
-                        : !hasReviewLink
-                          ? "Add your Review Link in Settings to resend"
-                          : "Resend the review request";
+                      const reviewDisabled = !hasClientEmail || (isPro && !hasReviewLink);
+                      const reviewTitle = !isPro
+                        ? "Review requests are a Pro feature. Upgrade to resend."
+                        : !hasClientEmail
+                          ? "Add a client email to resend"
+                          : !hasReviewLink
+                            ? "Add your Review Link in Settings to resend"
+                            : "Resend the review request";
                       ctas.push(
                         <button
                           key="resend-review"
-                          onClick={() => setReviewProposal(p)}
+                          onClick={() => {
+                            if (!isPro) {
+                              openUpgradeModal("Review requests");
+                              return;
+                            }
+                            setReviewProposal(p);
+                          }}
                           disabled={reviewDisabled}
                           title={reviewTitle}
                           className={secondaryBtn}
