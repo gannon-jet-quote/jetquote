@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Loader2, Users, FileText, Send, UserPlus } from "lucide-react";
 import Navbar from "@/components/Navbar";
+import AdminHealthCheck from "@/components/AdminHealthCheck";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Table, TableHeader, TableBody, TableRow, TableHead, TableCell,
@@ -109,6 +110,9 @@ const AdminDashboard = () => {
             </div>
           ) : (
             <>
+              {/* Admin Health Check */}
+              <AdminHealthCheck />
+
               {/* Metrics */}
               <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 {statCards.map((s) => (
