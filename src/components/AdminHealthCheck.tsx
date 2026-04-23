@@ -164,9 +164,11 @@ const AdminHealthCheck = () => {
 
   const cronIndicator: Indicator = (() => {
     if (!data.lastCron) return "red";
-    const ageH = (Date.now() - new Date(data.lastCron.created_at).getTime()) / 3600000;
-    if (ageH <= 2) return "green";
-    if (ageH <= 6) return "yellow";
+    if (data.lastCron.result !== "success") return "red";
+    const ageM = (Date.now() - new Date(data.lastCron.created_at).getTime()) / 60000;
+    // Cron runs every 15 min; allow some slack
+    if (ageM <= 25) return "green";
+    if (ageM <= 60) return "yellow";
     return "red";
   })();
 
@@ -174,6 +176,7 @@ const AdminHealthCheck = () => {
     data.errorCount24h === 0 ? "green" : data.errorCount24h <= 5 ? "yellow" : "red";
 
   const cronResultOk = data.lastCron?.result === "success";
+  const cronMeta = data.lastCron?.metadata || {};
 
   if (loading) {
     return (
@@ -219,15 +222,37 @@ const AdminHealthCheck = () => {
               <span className={cronResultOk ? "text-emerald-400" : "text-red-400"}>
                 {data.lastCron ? (cronResultOk ? "Success" : "Fail") : "—"}
               </span>
-              {data.lastCron?.metadata?.message && (
-                <span className="text-muted-foreground"> · {data.lastCron.metadata.message}</span>
+              {cronMeta.message && (
+                <span className="text-muted-foreground"> · {cronMeta.message}</span>
               )}
             </p>
+            {data.lastCron && (
+              <p className="text-muted-foreground">
+                Processed:{" "}
+                <span className="text-foreground">{cronMeta.processed_count ?? 0}</span>
+                {" · "}Sent:{" "}
+                <span className="text-foreground">{cronMeta.sent_count ?? 0}</span>
+                {" · "}Skipped:{" "}
+                <span className="text-foreground">{cronMeta.skipped_count ?? 0}</span>
+              </p>
+            )}
             <p className="text-muted-foreground">
               Follow-ups due now:{" "}
               <span className="text-foreground">{data.followupsDue}</span>
             </p>
           </div>
+          <button
+            onClick={handleRunCron}
+            disabled={runningCron}
+            className="mt-4 inline-flex items-center gap-2 rounded-lg border border-border bg-secondary px-3 py-1.5 text-xs font-medium text-foreground hover:bg-accent disabled:opacity-60"
+          >
+            {runningCron ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <Play className="h-3.5 w-3.5" />
+            )}
+            {runningCron ? "Running…" : "Run Cron Now"}
+          </button>
         </div>
 
         {/* 2. Errors (24h) */}
