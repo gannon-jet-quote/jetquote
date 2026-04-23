@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { Loader2, Users, FileText, Send, UserPlus } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import AdminHealthCheck from "@/components/AdminHealthCheck";
+import GoLiveChecklist from "@/components/GoLiveChecklist";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Table, TableHeader, TableBody, TableRow, TableHead, TableCell,
