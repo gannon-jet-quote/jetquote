@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { generatePDFBase64 } from "@/lib/pdfTemplates";
+import { buildAppUrl } from "@/lib/appBaseUrl";
 
 interface Proposal {
   id: string;
