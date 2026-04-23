@@ -18,6 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { buildAppUrl } from "@/lib/appBaseUrl";
 
 const Settings = () => {
   const { user, profile, refreshProfile } = useAuth();
