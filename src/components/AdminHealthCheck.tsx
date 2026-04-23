@@ -33,6 +33,7 @@ const Dot = ({ status }: { status: Indicator }) => (
 
 const AdminHealthCheck = () => {
   const [loading, setLoading] = useState(true);
+  const [runningCron, setRunningCron] = useState(false);
   const [data, setData] = useState({
     lastCron: null as null | { created_at: string; metadata: any; result: string },
     followupsDue: 0,
