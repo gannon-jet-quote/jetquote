@@ -27,6 +27,7 @@ import { openUpgradeModal } from "@/lib/upgradeModal";
 import { openSetupPrompt } from "@/lib/setupPrompt";
 import { Sparkles } from "lucide-react";
 import SetupChecklist from "@/components/SetupChecklist";
+import { buildAppUrl } from "@/lib/appBaseUrl";
 
 interface Proposal {
   id: string;
