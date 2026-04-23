@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { Loader2, Users, FileText, Send, UserPlus } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import AdminHealthCheck from "@/components/AdminHealthCheck";
+import GoLiveChecklist from "@/components/GoLiveChecklist";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Table, TableHeader, TableBody, TableRow, TableHead, TableCell,
@@ -112,6 +113,9 @@ const AdminDashboard = () => {
             <>
               {/* Admin Health Check */}
               <AdminHealthCheck />
+
+              {/* Go-Live Checklist */}
+              <GoLiveChecklist />
 
               {/* Metrics */}
               <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
