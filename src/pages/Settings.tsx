@@ -229,7 +229,7 @@ const Settings = () => {
                     className={fieldClass}
                   />
                   <p className="text-xs text-muted-foreground">
-                    Your public quote request link: {username ? `${window.location.origin}/request/${username}` : "Set a username to enable"}
+                    Your public quote request link: {username ? buildAppUrl(`/request/${username}`) : "Set a username to enable"}
                   </p>
                 </div>
               </div>
