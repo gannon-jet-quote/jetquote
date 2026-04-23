@@ -47,102 +47,120 @@ const AdminHealthCheck = () => {
     activeUsers7d: 0,
   });
 
+  const load = async () => {
+    const now = new Date();
+    const startOfToday = new Date(now);
+    startOfToday.setHours(0, 0, 0, 0);
+    const startOfTodayIso = startOfToday.toISOString();
+    const yesterdayIso = new Date(now.getTime() - 24 * 3600 * 1000).toISOString();
+    const sevenDaysAgoIso = new Date(now.getTime() - 7 * 24 * 3600 * 1000).toISOString();
+    const nowIso = now.toISOString();
+
+    const [
+      lastCronRes,
+      followupsDueRes,
+      errorCountRes,
+      recentErrorsRes,
+      emailsTodayRes,
+      followupsTodayRes,
+      acceptedTodayRes,
+      declinedTodayRes,
+      newSignupsRes,
+      activeUsersRes,
+    ] = await Promise.all([
+      supabase.from("system_events")
+        .select("created_at, metadata")
+        .eq("event_type", "cron_run")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+      supabase.from("proposals")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "sent")
+        .eq("followup_enabled", true)
+        .is("followup_sent_at", null)
+        .not("followup_scheduled_for", "is", null)
+        .lte("followup_scheduled_for", nowIso),
+      supabase.from("system_events")
+        .select("id", { count: "exact", head: true })
+        .eq("event_type", "error")
+        .gte("created_at", yesterdayIso),
+      supabase.from("system_events")
+        .select("created_at, event_source, metadata")
+        .eq("event_type", "error")
+        .gte("created_at", yesterdayIso)
+        .order("created_at", { ascending: false })
+        .limit(5),
+      supabase.from("system_events")
+        .select("id", { count: "exact", head: true })
+        .eq("event_type", "email_sent")
+        .gte("created_at", startOfTodayIso),
+      supabase.from("system_events")
+        .select("id", { count: "exact", head: true })
+        .eq("event_type", "followup_sent")
+        .gte("created_at", startOfTodayIso),
+      supabase.from("proposals")
+        .select("id", { count: "exact", head: true })
+        .gte("accepted_at", startOfTodayIso),
+      supabase.from("proposals")
+        .select("id", { count: "exact", head: true })
+        .gte("declined_at", startOfTodayIso),
+      supabase.from("profiles")
+        .select("user_id", { count: "exact", head: true })
+        .gte("created_at", startOfTodayIso),
+      supabase.from("proposals")
+        .select("user_id")
+        .gte("sent_at", sevenDaysAgoIso)
+        .not("sent_at", "is", null),
+    ]);
+
+    const activeUsers7d = new Set(
+      (activeUsersRes.data || []).map((r: any) => r.user_id)
+    ).size;
+
+    const lastCron = lastCronRes.data
+      ? {
+          created_at: lastCronRes.data.created_at,
+          metadata: lastCronRes.data.metadata || {},
+          result: (lastCronRes.data.metadata as any)?.result || "unknown",
+        }
+      : null;
+
+    setData({
+      lastCron,
+      followupsDue: followupsDueRes.count || 0,
+      errorCount24h: errorCountRes.count || 0,
+      recentErrors: (recentErrorsRes.data as ErrorRow[]) || [],
+      emailsSentToday: emailsTodayRes.count || 0,
+      followupsSentToday: followupsTodayRes.count || 0,
+      acceptedToday: acceptedTodayRes.count || 0,
+      declinedToday: declinedTodayRes.count || 0,
+      newSignupsToday: newSignupsRes.count || 0,
+      activeUsers7d,
+    });
+    setLoading(false);
+  };
+
   useEffect(() => {
-    const load = async () => {
-      const now = new Date();
-      const startOfToday = new Date(now);
-      startOfToday.setHours(0, 0, 0, 0);
-      const startOfTodayIso = startOfToday.toISOString();
-      const yesterdayIso = new Date(now.getTime() - 24 * 3600 * 1000).toISOString();
-      const sevenDaysAgoIso = new Date(now.getTime() - 7 * 24 * 3600 * 1000).toISOString();
-      const nowIso = now.toISOString();
-
-      const [
-        lastCronRes,
-        followupsDueRes,
-        errorCountRes,
-        recentErrorsRes,
-        emailsTodayRes,
-        followupsTodayRes,
-        acceptedTodayRes,
-        declinedTodayRes,
-        newSignupsRes,
-        activeUsersRes,
-      ] = await Promise.all([
-        supabase.from("system_events")
-          .select("created_at, metadata")
-          .eq("event_type", "cron_run")
-          .order("created_at", { ascending: false })
-          .limit(1)
-          .maybeSingle(),
-        supabase.from("proposals")
-          .select("id", { count: "exact", head: true })
-          .eq("status", "sent")
-          .eq("followup_enabled", true)
-          .is("followup_sent_at", null)
-          .not("followup_scheduled_for", "is", null)
-          .lte("followup_scheduled_for", nowIso),
-        supabase.from("system_events")
-          .select("id", { count: "exact", head: true })
-          .eq("event_type", "error")
-          .gte("created_at", yesterdayIso),
-        supabase.from("system_events")
-          .select("created_at, event_source, metadata")
-          .eq("event_type", "error")
-          .gte("created_at", yesterdayIso)
-          .order("created_at", { ascending: false })
-          .limit(5),
-        supabase.from("system_events")
-          .select("id", { count: "exact", head: true })
-          .eq("event_type", "email_sent")
-          .gte("created_at", startOfTodayIso),
-        supabase.from("system_events")
-          .select("id", { count: "exact", head: true })
-          .eq("event_type", "followup_sent")
-          .gte("created_at", startOfTodayIso),
-        supabase.from("proposals")
-          .select("id", { count: "exact", head: true })
-          .gte("accepted_at", startOfTodayIso),
-        supabase.from("proposals")
-          .select("id", { count: "exact", head: true })
-          .gte("declined_at", startOfTodayIso),
-        supabase.from("profiles")
-          .select("user_id", { count: "exact", head: true })
-          .gte("created_at", startOfTodayIso),
-        supabase.from("proposals")
-          .select("user_id")
-          .gte("sent_at", sevenDaysAgoIso)
-          .not("sent_at", "is", null),
-      ]);
-
-      const activeUsers7d = new Set(
-        (activeUsersRes.data || []).map((r: any) => r.user_id)
-      ).size;
-
-      const lastCron = lastCronRes.data
-        ? {
-            created_at: lastCronRes.data.created_at,
-            metadata: lastCronRes.data.metadata || {},
-            result: (lastCronRes.data.metadata as any)?.result || "unknown",
-          }
-        : null;
-
-      setData({
-        lastCron,
-        followupsDue: followupsDueRes.count || 0,
-        errorCount24h: errorCountRes.count || 0,
-        recentErrors: (recentErrorsRes.data as ErrorRow[]) || [],
-        emailsSentToday: emailsTodayRes.count || 0,
-        followupsSentToday: followupsTodayRes.count || 0,
-        acceptedToday: acceptedTodayRes.count || 0,
-        declinedToday: declinedTodayRes.count || 0,
-        newSignupsToday: newSignupsRes.count || 0,
-        activeUsers7d,
-      });
-      setLoading(false);
-    };
     load();
   }, []);
+
+  const handleRunCron = async () => {
+    setRunningCron(true);
+    try {
+      const { data: res, error } = await supabase.functions.invoke("send-followup-emails", {
+        body: {},
+      });
+      if (error) throw error;
+      toast.success(`Cron run complete · sent ${res?.sent ?? 0}`);
+      // Give the insert a moment to land, then refresh
+      setTimeout(() => load(), 800);
+    } catch (e: any) {
+      toast.error(`Cron run failed: ${e?.message || "unknown error"}`);
+    } finally {
+      setRunningCron(false);
+    }
+  };
 
   const cronIndicator: Indicator = (() => {
     if (!data.lastCron) return "red";
