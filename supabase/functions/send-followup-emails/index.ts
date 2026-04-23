@@ -72,7 +72,20 @@ Deno.serve(async (req) => {
     }
 
     if (!proposals || proposals.length === 0) {
-      return new Response(JSON.stringify({ sent: 0 }), {
+      if (!manualProposalId) {
+        await supabase.from("system_events").insert({
+          event_type: "cron_run",
+          event_source: "send-followup-emails",
+          metadata: {
+            processed_count: 0,
+            sent_count: 0,
+            skipped_count: 0,
+            result: "success",
+            message: "No follow-ups due",
+          },
+        });
+      }
+      return new Response(JSON.stringify({ sent: 0, processed: 0 }), {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
