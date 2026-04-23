@@ -110,8 +110,8 @@ Deno.serve(async (req) => {
         const userName = profile.full_name || businessName;
         const businessEmail = p.branding?.businessEmail || "";
 
-        // Use the SITE_URL secret or fallback
-        const siteUrl = Deno.env.get("SITE_URL") || "https://jet-quote.com";
+        // Single source of truth for the app's base URL
+        const siteUrl = (Deno.env.get("APP_BASE_URL") || Deno.env.get("SITE_URL") || "https://jet-quote.com").replace(/\/+$/, "");
         const responseUrl = `${siteUrl}/proposal/respond/${p.public_token}`;
 
         const subject = `Quick follow-up on your proposal from ${businessName}`;

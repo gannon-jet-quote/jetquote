@@ -27,6 +27,7 @@ import { openUpgradeModal } from "@/lib/upgradeModal";
 import { openSetupPrompt } from "@/lib/setupPrompt";
 import { Sparkles } from "lucide-react";
 import SetupChecklist from "@/components/SetupChecklist";
+import { buildAppUrl } from "@/lib/appBaseUrl";
 
 interface Proposal {
   id: string;
@@ -318,7 +319,7 @@ const Dashboard = () => {
               {profile?.username && (
                 <button
                   onClick={() => {
-                    const link = `${window.location.origin}/request/${profile.username}`;
+                    const link = buildAppUrl(`/request/${profile.username}`);
                     navigator.clipboard.writeText(link);
                     toast({ title: "Quote request link copied!" });
                   }}
