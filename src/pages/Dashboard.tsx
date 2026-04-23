@@ -319,7 +319,7 @@ const Dashboard = () => {
               {profile?.username && (
                 <button
                   onClick={() => {
-                    const link = `${window.location.origin}/request/${profile.username}`;
+                    const link = buildAppUrl(`/request/${profile.username}`);
                     navigator.clipboard.writeText(link);
                     toast({ title: "Quote request link copied!" });
                   }}
