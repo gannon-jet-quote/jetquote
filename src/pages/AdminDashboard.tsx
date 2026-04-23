@@ -114,6 +114,9 @@ const AdminDashboard = () => {
               {/* Admin Health Check */}
               <AdminHealthCheck />
 
+              {/* Go-Live Checklist */}
+              <GoLiveChecklist />
+
               {/* Metrics */}
               <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 {statCards.map((s) => (
