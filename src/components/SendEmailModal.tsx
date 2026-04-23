@@ -151,7 +151,7 @@ const SendEmailModal = ({ proposal, open, onOpenChange, onSent, userName }: Prop
         } as any)
         .eq("id", p.id);
 
-      const responseUrl = `${window.location.origin}/proposal/respond/${publicToken}`;
+      const responseUrl = buildAppUrl(`/proposal/respond/${publicToken}`);
 
       const { data, error } = await supabase.functions.invoke("send-proposal-email", {
         body: { proposalId: p.id, to, subject, body, pdfBase64, pdfFilename, responseUrl },
