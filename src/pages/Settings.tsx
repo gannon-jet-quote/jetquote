@@ -3,8 +3,8 @@ import { motion } from "framer-motion";
 import { Loader2, Save, CheckCircle } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { useAuth } from "@/contexts/AuthContext";
-import { useBrandingSettings } from "@/hooks/useBrandingSettings";
 import { supabase } from "@/integrations/supabase/client";
+import type { Database, Json } from "@/integrations/supabase/types";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import LogoUpload from "@/components/LogoUpload";
@@ -20,9 +20,14 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { buildAppUrl } from "@/lib/appBaseUrl";
 
+type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
+type ProfileUpdate = Database["public"]["Tables"]["profiles"]["Update"];
+type BrandingRow = Database["public"]["Tables"]["branding_settings"]["Row"];
+type BrandingInsert = Database["public"]["Tables"]["branding_settings"]["Insert"];
+type ProfileLike = Partial<ProfileRow>;
+
 const Settings = () => {
   const { user, profile, refreshProfile } = useAuth();
-  const { settings: branding, loading: brandingLoading } = useBrandingSettings();
   const { toast } = useToast();
 
   // Profile fields
@@ -53,34 +58,140 @@ const Settings = () => {
 
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [loadErrors, setLoadErrors] = useState<{ profile?: string; branding?: string }>({});
+
+  const toColorChoice = (value: Json | null | undefined): ColorChoice | null =>
+    (value as unknown as ColorChoice) ?? null;
+
+  const toJson = (value: ColorChoice | null): Json | null =>
+    (value as unknown as Json) ?? null;
+
+  const applyProfile = (row: ProfileLike | null | undefined) => {
+    setFirstName(row?.first_name || "");
+    setLastName(row?.last_name || "");
+    setBusinessName(row?.business_name || "");
+    setTitle(row?.title || "");
+    setBusinessPhone(row?.business_phone || "");
+    setUsername(row?.username || "");
+    setPrimaryServiceType(row?.primary_service_type || "");
+    setPaymentMethodName(row?.payment_method_name || "");
+    setPaymentLinkOrInstructions(row?.payment_link_or_instructions || "");
+    setPaymentNote(row?.payment_note || "");
+    setReviewPlatform(row?.review_platform || "");
+    setReviewLink(row?.review_link || "");
+    setReviewSignatureName(row?.review_signature_name || "");
+  };
+
+  const applyBranding = (row: Partial<BrandingRow> | null | undefined) => {
+    setTone(row?.default_tone || "standard");
+    setPrimaryColor(toColorChoice(row?.primary_color));
+    setSecondaryColor(toColorChoice(row?.secondary_color));
+    setAccentColor(toColorChoice(row?.accent_color));
+    setLogoDataUrl(row?.logo_url || null);
+  };
 
   useEffect(() => {
     if (profile) {
-      setFirstName(profile.first_name);
-      setLastName(profile.last_name);
-      setBusinessName(profile.business_name);
-      setTitle(profile.title || "");
-      setBusinessPhone(profile.business_phone || "");
-      setUsername((profile as any).username || "");
-      setPrimaryServiceType((profile as any).primary_service_type || "");
-      setPaymentMethodName((profile as any).payment_method_name || "");
-      setPaymentLinkOrInstructions((profile as any).payment_link_or_instructions || "");
-      setPaymentNote((profile as any).payment_note || "");
-      setReviewPlatform((profile as any).review_platform || "");
-      setReviewLink((profile as any).review_link || "");
-      setReviewSignatureName((profile as any).review_signature_name || "");
+      applyProfile(profile);
     }
   }, [profile]);
 
   useEffect(() => {
-    if (branding) {
-      setTone(branding.default_tone || "standard");
-      setPrimaryColor(branding.primary_color);
-      setSecondaryColor(branding.secondary_color);
-      setAccentColor(branding.accent_color);
-      if (branding.logo_url) setLogoDataUrl(branding.logo_url);
+    const load = async () => {
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true);
+      setLoadErrors({});
+
+      try {
+        const [profileResult, brandingResult] = await Promise.allSettled([
+          supabase
+            .from("profiles")
+            .select("*")
+            .eq("user_id", user.id)
+            .maybeSingle(),
+          supabase
+            .from("branding_settings")
+            .select("*")
+            .eq("user_id", user.id),
+        ]);
+
+        const nextErrors: { profile?: string; branding?: string } = {};
+
+        if (profileResult.status === "fulfilled") {
+          const { data, error } = profileResult.value;
+          console.log("Settings profiles result", { count: data ? 1 : 0, data, error });
+          if (error) {
+            console.error("Settings profiles error:", error);
+            nextErrors.profile = "Couldn't load profile.";
+            if (profile) applyProfile(profile);
+          } else {
+            applyProfile(data || profile || {});
+          }
+        } else {
+          console.error("Settings profiles rejected:", profileResult.reason);
+          nextErrors.profile = "Couldn't load profile.";
+          if (profile) applyProfile(profile);
+        }
+
+        if (brandingResult.status === "fulfilled") {
+          const { data, error } = brandingResult.value;
+          console.log("Settings branding_settings result", { count: data?.length ?? 0, data, error });
+          if (error) {
+            console.error("Settings branding_settings error:", error);
+            nextErrors.branding = "Couldn't load branding settings.";
+            applyBranding(null);
+          } else {
+            const brandingRow = data?.[0] || null;
+            applyBranding(brandingRow);
+            if (!brandingRow) {
+              const defaultBranding: BrandingInsert = {
+                user_id: user.id,
+                default_tone: "standard",
+                onboarding_completed: true,
+              };
+              const { error: upsertError } = await supabase
+                .from("branding_settings")
+                .upsert(defaultBranding, { onConflict: "user_id" });
+              console.log("Settings default branding_settings upsert", { error: upsertError });
+              if (upsertError) {
+                console.error("Settings default branding_settings upsert error:", upsertError);
+                nextErrors.branding = "Couldn't create default branding settings.";
+              }
+            }
+          }
+        } else {
+          console.error("Settings branding_settings rejected:", brandingResult.reason);
+          nextErrors.branding = "Couldn't load branding settings.";
+          applyBranding(null);
+        }
+
+        setLoadErrors(nextErrors);
+      } catch (error) {
+        console.error("Settings load error:", error);
+        setLoadErrors({
+          profile: "Couldn't load profile.",
+          branding: "Couldn't load branding settings.",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    load();
+  }, [user]);
+
+  useEffect(() => {
+    if (!loading && profile) {
+      setFirstName((current) => current || profile.first_name || "");
+      setLastName((current) => current || profile.last_name || "");
+      setBusinessName((current) => current || profile.business_name || "");
     }
-  }, [branding]);
+  }, [loading, profile]);
 
   const uploadLogo = async (): Promise<string | null> => {
     if (!logoDataUrl || !user) return null;
@@ -101,6 +212,10 @@ const Settings = () => {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!user) {
+      toast({ title: "Error", description: "You must be signed in to save settings.", variant: "destructive" });
+      return;
+    }
     if (!firstName.trim() || !lastName.trim() || !businessName.trim()) {
       toast({ title: "Missing fields", description: "First name, last name, and business name are required.", variant: "destructive" });
       return;
@@ -109,47 +224,58 @@ const Settings = () => {
 
     try {
       // Save profile
-      const { error: profileErr } = await supabase
+      const profileUpdate: ProfileUpdate = {
+        user_id: user.id,
+        first_name: firstName.trim(),
+        last_name: lastName.trim(),
+        business_name: businessName.trim(),
+        title: title.trim() || null,
+        business_phone: businessPhone.trim() || null,
+        username: username.trim().toLowerCase() || null,
+        primary_service_type: primaryServiceType || null,
+        payment_method_name: paymentMethodName.trim() || null,
+        payment_link_or_instructions: paymentLinkOrInstructions.trim() || null,
+        payment_note: paymentNote.trim() || null,
+        review_platform: reviewPlatform.trim() || null,
+        review_link: reviewLink.trim() || null,
+        review_signature_name: reviewSignatureName.trim() || null,
+      };
+      const profileRes = await supabase
         .from("profiles")
-        .update({
-          first_name: firstName.trim(),
-          last_name: lastName.trim(),
-          business_name: businessName.trim(),
-          title: title.trim() || null,
-          business_phone: businessPhone.trim() || null,
-          username: username.trim().toLowerCase() || null,
-          primary_service_type: primaryServiceType || null,
-          payment_method_name: paymentMethodName.trim() || null,
-          payment_link_or_instructions: paymentLinkOrInstructions.trim() || null,
-          payment_note: paymentNote.trim() || null,
-          review_platform: reviewPlatform.trim() || null,
-          review_link: reviewLink.trim() || null,
-          review_signature_name: reviewSignatureName.trim() || null,
-        } as any)
-        .eq("user_id", profile!.user_id);
+        .upsert(profileUpdate, { onConflict: "user_id" })
+        .select("user_id, first_name, last_name, business_name, primary_service_type, payment_method_name, payment_link_or_instructions, review_link")
+        .single();
+      console.log("Settings profile save response", profileRes);
 
-      if (profileErr) throw profileErr;
+      if (profileRes.error) throw profileRes.error;
 
       // Save branding
       const logoUrl = await uploadLogo();
-      const { error: brandErr } = await supabase.from("branding_settings").upsert({
-        user_id: user!.id,
+      const brandingUpdate: BrandingInsert = {
+        user_id: user.id,
         logo_url: logoUrl,
-        primary_color: primaryColor as any,
-        secondary_color: secondaryColor as any,
-        accent_color: accentColor as any,
+        primary_color: toJson(primaryColor),
+        secondary_color: toJson(secondaryColor),
+        accent_color: toJson(accentColor),
         default_tone: tone,
         onboarding_completed: true,
-      }, { onConflict: "user_id" });
+      };
+      const brandingRes = await supabase
+        .from("branding_settings")
+        .upsert(brandingUpdate, { onConflict: "user_id" })
+        .select("user_id, logo_url, primary_color, secondary_color, default_tone, onboarding_completed")
+        .single();
+      console.log("Settings branding save response", brandingRes);
 
-      if (brandErr) throw brandErr;
+      if (brandingRes.error) throw brandingRes.error;
 
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
       await refreshProfile();
       toast({ title: "Settings updated" });
-    } catch (e: any) {
-      toast({ title: "Error", description: e.message, variant: "destructive" });
+    } catch (e) {
+      const message = e instanceof Error ? e.message : "Unable to save settings.";
+      toast({ title: "Error", description: message, variant: "destructive" });
     } finally {
       setSaving(false);
     }
@@ -165,12 +291,19 @@ const Settings = () => {
           <h1 className="mb-2 font-display text-3xl font-bold text-foreground">Settings</h1>
           <p className="mb-8 text-muted-foreground">Update your profile and branding defaults.</p>
 
-          {!profile || brandingLoading ? (
+          {loading ? (
             <div className="flex items-center justify-center py-20">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
           ) : (
             <form onSubmit={handleSave} className="space-y-8">
+              {(loadErrors.profile || loadErrors.branding) && (
+                <div className="space-y-2 rounded-lg border border-destructive/40 bg-destructive/10 p-4 text-sm text-foreground">
+                  {loadErrors.profile && <p>{loadErrors.profile}</p>}
+                  {loadErrors.branding && <p>{loadErrors.branding}</p>}
+                </div>
+              )}
+
               {/* Profile Section */}
               <div className="space-y-4 rounded-xl border border-border bg-card p-6">
                 <h2 className="font-display text-lg font-semibold text-foreground">Profile</h2>

@@ -2,6 +2,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
@@ -28,7 +29,7 @@ Deno.serve(async (req) => {
 
     const { data: proposal, error } = await supabase
       .from("proposals")
-      .select("id, client_name, service_type, total_price_formatted, status, branding, user_id")
+      .select("id, public_token, client_name, service_type, total_price_formatted, status, branding, user_id")
       .eq("public_token", token)
       .single();
 
@@ -43,25 +44,41 @@ Deno.serve(async (req) => {
     let logoUrl = null;
     let primaryColor = null;
     let accentColor = null;
+    let profileBusinessName = "";
     if (proposal.user_id) {
-      const { data: branding } = await supabase
-        .from("branding_settings")
-        .select("logo_url, primary_color, accent_color")
-        .eq("user_id", proposal.user_id)
-        .maybeSingle();
+      const [brandingRes, profileRes] = await Promise.all([
+        supabase
+          .from("branding_settings")
+          .select("logo_url, primary_color, accent_color")
+          .eq("user_id", proposal.user_id)
+          .maybeSingle(),
+        supabase
+          .from("profiles")
+          .select("business_name")
+          .eq("user_id", proposal.user_id)
+          .maybeSingle(),
+      ]);
+      const branding = brandingRes.data;
       if (branding) {
         logoUrl = branding.logo_url;
         primaryColor = branding.primary_color;
         accentColor = branding.accent_color;
       }
+      profileBusinessName = profileRes.data?.business_name || "";
     }
 
+    const proposalBranding = proposal.branding && typeof proposal.branding === "object"
+      ? proposal.branding as Record<string, unknown>
+      : {};
+
     return new Response(JSON.stringify({
+      proposal_id: proposal.id,
+      public_token: proposal.public_token,
       client_name: proposal.client_name,
       service_type: proposal.service_type,
       total_price_formatted: proposal.total_price_formatted,
       status: proposal.status,
-      business_name: (proposal.branding as any)?.businessName || "",
+      business_name: String(proposalBranding.businessName || profileBusinessName || ""),
       logo_url: logoUrl,
       primary_color: primaryColor,
       accent_color: accentColor,

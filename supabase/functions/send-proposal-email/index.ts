@@ -2,6 +2,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
@@ -50,7 +51,7 @@ Deno.serve(async (req) => {
     // Verify proposal belongs to user
     const { data: proposal, error: fetchErr } = await supabase
       .from("proposals")
-      .select("id, user_id")
+      .select("id, user_id, public_token")
       .eq("id", proposalId)
       .single();
 
@@ -70,9 +71,15 @@ Deno.serve(async (req) => {
       });
     }
 
+    const siteUrl = (Deno.env.get("APP_BASE_URL") || Deno.env.get("SITE_URL") || "").replace(/\/+$/, "");
+    const serverResponseUrl = siteUrl && proposal.public_token
+      ? `${siteUrl}/proposal/respond/${proposal.public_token}`
+      : "";
+    const finalResponseUrl = serverResponseUrl || responseUrl;
+
     // Append response link to email body if available
-    const emailBody = responseUrl
-      ? `${body}\n\nAccept/Decline Proposal Here:\n${responseUrl}`
+    const emailBody = finalResponseUrl
+      ? `${body}\n\nAccept/Decline Proposal Here:\n${finalResponseUrl}`
       : body;
 
     const emailRes = await fetch("https://api.resend.com/emails", {

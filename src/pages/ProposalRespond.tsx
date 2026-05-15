@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Loader2, CheckCircle, XCircle, ShieldCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 interface ProposalData {
+  proposal_id: string;
+  public_token: string;
   client_name: string;
   service_type: string;
   total_price_formatted: string;
@@ -16,7 +18,9 @@ interface ProposalData {
 }
 
 const ProposalRespond = () => {
-  const { token } = useParams<{ token: string }>();
+  const { token: tokenParam } = useParams<{ token: string }>();
+  const [searchParams] = useSearchParams();
+  const token = tokenParam || searchParams.get("token") || "";
   const [proposal, setProposal] = useState<ProposalData | null>(null);
   const [loading, setLoading] = useState(true);
   const [responding, setResponding] = useState(false);
@@ -26,30 +30,39 @@ const ProposalRespond = () => {
   useEffect(() => {
     const fetchProposal = async () => {
       if (!token) {
-        setError("Invalid link");
+        setError("This proposal link is missing a response token.");
         setLoading(false);
         return;
       }
 
-      const { data, error: err } = await supabase.functions.invoke("get-proposal-by-token", {
-        body: { token },
-      });
+      try {
+        console.log("ProposalRespond loading token", { hasToken: Boolean(token) });
+        const { data, error: err } = await supabase.functions.invoke("get-proposal-by-token", {
+          body: { token },
+        });
 
-      if (err || data?.error) {
-        setError("This proposal could not be found.");
-        setLoading(false);
-        return;
-      }
+        console.log("ProposalRespond get-proposal response", { data, error: err });
 
-      if (data.status === "accepted" || data.status === "declined") {
+        if (err || data?.error) {
+          setError(data?.error || err?.message || "This proposal could not be found.");
+          return;
+        }
+
+        if (!data) {
+          setError("This proposal could not be found.");
+          return;
+        }
+
         setProposal(data);
-        setResult(data.status);
+        if (data.status === "accepted" || data.status === "declined") {
+          setResult(data.status);
+        }
+      } catch (err) {
+        console.error("ProposalRespond load exception:", err);
+        setError("We couldn't load this proposal. Please contact your service provider.");
+      } finally {
         setLoading(false);
-        return;
       }
-
-      setProposal(data);
-      setLoading(false);
     };
 
     fetchProposal();
@@ -58,34 +71,42 @@ const ProposalRespond = () => {
   const handleRespond = async (action: "accept" | "decline") => {
     if (!token) return;
     setResponding(true);
+    setError(null);
 
-    const { data, error: err } = await supabase.functions.invoke("proposal-respond", {
-      body: { token, action },
-    });
+    try {
+      const { data, error: err } = await supabase.functions.invoke("proposal-respond", {
+        body: { token, action },
+      });
 
-    if (err) {
-      setError("Something went wrong. Please try again.");
-      setResponding(false);
-      return;
-    }
+      console.log("ProposalRespond submit response", { action, data, error: err });
 
-    if (data?.error === "already_responded") {
+      if (err) {
+        setError(err.message || "Something went wrong. Please try again.");
+        return;
+      }
+
+      if (data?.error === "already_responded") {
+        setResult(data.status);
+        setProposal((prev) => prev ? { ...prev, status: data.status } : prev);
+        return;
+      }
+
+      if (data?.error) {
+        setError(data.error);
+        return;
+      }
+
       setResult(data.status);
+      setProposal((prev) => prev ? { ...prev, status: data.status } : prev);
+    } catch (err) {
+      console.error("ProposalRespond submit exception:", err);
+      setError("Something went wrong. Please try again.");
+    } finally {
       setResponding(false);
-      return;
     }
-
-    if (data?.error) {
-      setError(data.error);
-      setResponding(false);
-      return;
-    }
-
-    setResult(data.status);
-    setResponding(false);
   };
 
-  const brandColor = proposal?.primary_color?.hex || "hsl(225, 85%, 60%)";
+  const brandColor = proposal?.primary_color?.hex || "#C9A227";
 
   if (loading) {
     return (
@@ -106,7 +127,17 @@ const ProposalRespond = () => {
     );
   }
 
-  if (!proposal) return null;
+  if (!proposal) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-slate-50 to-slate-100 px-6">
+        <div className="max-w-md rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-lg">
+          <XCircle className="mx-auto mb-4 h-14 w-14 text-red-400" />
+          <h1 className="mb-2 text-xl font-bold text-slate-800">Proposal unavailable</h1>
+          <p className="text-sm text-slate-500">We couldn't load this proposal. Please contact your service provider.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-slate-50 to-slate-100 px-4 py-12">
@@ -189,8 +220,9 @@ const ProposalRespond = () => {
                       <CheckCircle className="h-9 w-9 text-emerald-500" />
                     </div>
                     <p className="text-center text-lg font-semibold text-slate-800">
-                      Thank you, this proposal has been accepted.
+                      Thanks — we've notified {proposal.business_name || "your service provider"}.
                     </p>
+                    <p className="text-center text-sm text-slate-500">This proposal has been accepted.</p>
                   </>
                 ) : (
                   <>
@@ -198,13 +230,22 @@ const ProposalRespond = () => {
                       <XCircle className="h-9 w-9 text-red-400" />
                     </div>
                     <p className="text-center text-lg font-semibold text-slate-800">
-                      Thank you, your response has been recorded.
+                      Thanks — we've notified {proposal.business_name || "your service provider"}.
                     </p>
+                    <p className="text-center text-sm text-slate-500">This proposal has been declined.</p>
                   </>
+                )}
+                {(proposal.status === "accepted" || proposal.status === "declined") && (
+                  <p className="text-center text-xs text-slate-400">Response already recorded.</p>
                 )}
               </motion.div>
             ) : (
               <div className="space-y-4">
+                {error && (
+                  <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                    {error}
+                  </div>
+                )}
                 <p className="text-center text-sm text-slate-500">
                   Please confirm how you would like to proceed with this proposal.
                 </p>
@@ -232,7 +273,7 @@ const ProposalRespond = () => {
                   )}
                 </button>
                 <p className="pt-1 text-center text-xs text-slate-400">
-                  Selecting an option above simply notifies your service provider of your decision regarding this proposal.
+                  Selecting an option simply notifies your service provider of your decision. This page is not a contract, payment authorization, or legally binding signature.
                 </p>
               </div>
             )}

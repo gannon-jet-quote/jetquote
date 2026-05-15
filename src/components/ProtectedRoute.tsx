@@ -29,6 +29,7 @@ const ProtectedRoute = ({ children, skipOnboardingCheck }: Props) => {
   if (
     !skipOnboardingCheck &&
     !settings?.onboarding_completed &&
+    location.pathname !== "/settings" &&
     location.pathname !== "/onboarding"
   ) {
     return <Navigate to="/onboarding" replace />;
