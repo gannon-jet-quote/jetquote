@@ -56,6 +56,8 @@ interface Proposal {
   payment_status: string;
   payment_received_at: string | null;
   review_request_sent_at: string | null;
+  review_completed: boolean;
+  review_completed_at: string | null;
 }
 
 const statusConfig: Record<string, { label: string; className: string }> = {
@@ -230,6 +232,25 @@ const Dashboard = () => {
         )
       );
       toast({ title: "Payment marked as received" });
+    }
+  };
+
+  const handleMarkReviewCompleted = async (p: Proposal) => {
+    const nowIso = new Date().toISOString();
+    const { error } = await supabase
+      .from("proposals")
+      .update({ review_completed: true, review_completed_at: nowIso } as any)
+      .eq("id", p.id);
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
+      setProposals((prev) =>
+        prev.map((x) =>
+          x.id === p.id ? { ...x, review_completed: true, review_completed_at: nowIso } : x
+        )
+      );
+      toast({ title: "Marked review as completed." });
+      fetchProposals();
     }
   };
 
@@ -465,12 +486,14 @@ const Dashboard = () => {
             </div>
           ) : (
             <div className="space-y-4">
-              {proposals.map((p) => (
+              {proposals.map((p) => {
+                const { isClosed } = getStepState(p);
+                return (
                 <motion.div
                   key={p.id}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="rounded-xl border border-border bg-card p-5"
+                  className={`rounded-xl border p-5 transition-colors ${isClosed ? "border-emerald-600/30 bg-card/80" : "border-border bg-card"}`}
                 >
                   <div className="flex flex-wrap items-start justify-between gap-4">
                     <div className="min-w-0 flex-1">
@@ -480,6 +503,11 @@ const Dashboard = () => {
                         <span className="text-border">•</span>
                         <span>{p.total_price_formatted}</span>
                         <span className="text-border">•</span>
+                        {isClosed && (
+                          <span className="inline-flex items-center gap-1 rounded-full border border-emerald-600/40 bg-emerald-600/15 px-2.5 py-0.5 text-xs font-semibold text-emerald-600">
+                            ✅ Job Closed
+                          </span>
+                        )}
                         <span className={`rounded-full border px-2.5 py-0.5 text-xs font-medium ${statusConfig[p.status]?.className || statusConfig.draft.className}`}>
                           {statusConfig[p.status]?.label || "Draft"}
                         </span>
@@ -506,6 +534,12 @@ const Dashboard = () => {
                         {(p as any).review_request_sent_at && (
                           <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-0.5 text-xs font-medium text-amber-500">
                             <Star className="h-3 w-3" /> Review Requested
+                          </span>
+                        )}
+                        {p.review_completed && (
+                          <span className="inline-flex items-center gap-1 rounded-full border border-green-600/30 bg-green-600/10 px-2.5 py-0.5 text-xs font-medium text-green-600">
+                            <CheckCircle className="h-3 w-3" /> Review Completed
+                            {p.review_completed_at ? ` · ${new Date(p.review_completed_at).toLocaleDateString()}` : ""}
                           </span>
                         )}
                       </div>
@@ -627,11 +661,13 @@ const Dashboard = () => {
                     </motion.div>
                   )}
 
-                  <ProposalStepper proposal={p} />
+                  <div className={isClosed ? "opacity-80" : ""}>
+                    <ProposalStepper proposal={p} />
+                  </div>
 
                   {/* Step-aligned primary CTAs */}
                   {(() => {
-                    const { current, isDeclined } = getStepState(p);
+                    const { current, isDeclined, isClosed } = getStepState(p);
                     const ctas: React.ReactNode[] = [];
 
                     const hasClientEmail = !!p.client_email?.trim();
@@ -645,7 +681,16 @@ const Dashboard = () => {
                     const secondaryBtn =
                       "inline-flex items-center gap-1.5 rounded-lg border border-border bg-secondary px-3 py-1.5 text-xs font-medium text-secondary-foreground transition-colors hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-secondary";
 
-                    if (isDeclined) {
+                    if (isClosed) {
+                      ctas.push(
+                        <span
+                          key="closed"
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-600/30 bg-emerald-600/10 px-3 py-1.5 text-xs font-medium text-emerald-600"
+                        >
+                          <CheckCircle className="h-3.5 w-3.5" /> Workflow complete
+                        </span>
+                      );
+                    } else if (isDeclined) {
                       // Declined branch: hide downstream steps; offer recovery actions
                       ctas.push(
                         <button
@@ -857,7 +902,7 @@ const Dashboard = () => {
                           {!isPro && <Sparkles className="h-3 w-3" />}
                         </button>
                       );
-                    } else if (current === "review") {
+                    } else if (current === "review" && !p.review_completed) {
                       const reviewDisabled = !hasClientEmail;
                       const reviewTitle = !isPro
                         ? "Review requests are a Pro feature. Upgrade to resend."
@@ -868,30 +913,42 @@ const Dashboard = () => {
                             : "Resend the review request";
                       ctas.push(
                         <button
-                          key="resend-review"
-                          onClick={() => {
-                            if (!isPro) {
-                              openUpgradeModal("Review requests");
-                              return;
-                            }
-                            if (!hasReviewLink) {
-                              openSetupPrompt({
-                                title: "Add a review link to send review requests",
-                                description: "Set your review platform link in Settings before resending a review request.",
-                                ctaLabel: "Open Settings",
-                                ctaHref: "/settings",
-                              });
-                              return;
-                            }
-                            setReviewProposal(p);
-                          }}
-                          disabled={reviewDisabled}
-                          title={reviewTitle}
-                          className={secondaryBtn}
+                          key="mark-review-complete"
+                          onClick={() => handleMarkReviewCompleted(p)}
+                          title="Record that this client completed the review"
+                          className={primaryBtn}
                         >
-                          <RotateCw className="h-3.5 w-3.5" /> Resend Review Request
+                          <CheckCircle className="h-3.5 w-3.5" /> Mark Review Completed
                         </button>
                       );
+                      if (!p.review_completed) {
+                        ctas.push(
+                          <button
+                            key="resend-review"
+                            onClick={() => {
+                              if (!isPro) {
+                                openUpgradeModal("Review requests");
+                                return;
+                              }
+                              if (!hasReviewLink) {
+                                openSetupPrompt({
+                                  title: "Add a review link to send review requests",
+                                  description: "Set your review platform link in Settings before resending a review request.",
+                                  ctaLabel: "Open Settings",
+                                  ctaHref: "/settings",
+                                });
+                                return;
+                              }
+                              setReviewProposal(p);
+                            }}
+                            disabled={reviewDisabled}
+                            title={reviewTitle}
+                            className={secondaryBtn}
+                          >
+                            <RotateCw className="h-3.5 w-3.5" /> Resend Review Request
+                          </button>
+                        );
+                      }
                     }
 
                     if (ctas.length === 0) return null;
@@ -902,7 +959,8 @@ const Dashboard = () => {
                     );
                   })()}
                 </motion.div>
-              ))}
+              );
+              })}
             </div>
           )}
         </motion.div>

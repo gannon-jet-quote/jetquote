@@ -237,6 +237,8 @@ export type Database = {
           public_token: string | null
           responded_at: string | null
           review_request_body: string | null
+          review_completed: boolean
+          review_completed_at: string | null
           review_request_sent_at: string | null
           review_request_sent_to: string | null
           review_request_subject: string | null
@@ -281,6 +283,8 @@ export type Database = {
           public_token?: string | null
           responded_at?: string | null
           review_request_body?: string | null
+          review_completed?: boolean
+          review_completed_at?: string | null
           review_request_sent_at?: string | null
           review_request_sent_to?: string | null
           review_request_subject?: string | null
@@ -325,6 +329,8 @@ export type Database = {
           public_token?: string | null
           responded_at?: string | null
           review_request_body?: string | null
+          review_completed?: boolean
+          review_completed_at?: string | null
           review_request_sent_at?: string | null
           review_request_sent_to?: string | null
           review_request_subject?: string | null

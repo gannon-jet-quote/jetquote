@@ -9,9 +9,11 @@ interface StepperProposal {
   payment_status: string;
   payment_received_at: string | null;
   review_request_sent_at: string | null;
+  review_completed: boolean;
+  review_completed_at: string | null;
 }
 
-type StepKey = "draft" | "sent" | "accepted" | "completed" | "paid" | "review";
+type StepKey = "draft" | "sent" | "accepted" | "completed" | "paid" | "review" | "closed";
 
 interface Step {
   key: StepKey;
@@ -26,6 +28,7 @@ const STEPS: Step[] = [
   { key: "completed", label: "Completed", icon: Wrench },
   { key: "paid", label: "Paid", icon: DollarSign },
   { key: "review", label: "Review", icon: Star },
+  { key: "closed", label: "Closed", icon: CheckCircle2 },
 ];
 
 export function getStepState(p: StepperProposal) {
@@ -35,6 +38,7 @@ export function getStepState(p: StepperProposal) {
   const isCompleted = !!p.completed_at;
   const isPaid = p.payment_status === "paid" || !!p.payment_received_at;
   const isReview = !!p.review_request_sent_at;
+  const isClosed = isAccepted && isPaid && !!p.review_completed;
 
   const completed: Record<StepKey, boolean> = {
     draft: true,
@@ -43,17 +47,19 @@ export function getStepState(p: StepperProposal) {
     completed: isCompleted,
     paid: isPaid,
     review: isReview,
+    closed: isClosed,
   };
 
   let current: StepKey = "draft";
-  if (isReview) current = "review";
+  if (isClosed) current = "closed";
+  else if (isReview) current = "review";
   else if (isPaid) current = "paid";
   else if (isCompleted) current = "completed";
   else if (isAccepted) current = "accepted";
   else if (isSent) current = "sent";
   else current = "draft";
 
-  return { completed, current, isDeclined };
+  return { completed, current, isDeclined, isClosed };
 }
 
 export const ProposalStepper = ({ proposal }: { proposal: StepperProposal }) => {
