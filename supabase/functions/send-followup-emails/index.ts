@@ -124,7 +124,7 @@ Deno.serve(async (req) => {
         const businessEmail = p.branding?.businessEmail || "";
 
         // Single source of truth for the app's base URL
-        const siteUrl = (Deno.env.get("APP_BASE_URL") || Deno.env.get("SITE_URL") || "https://jet-quote.com").replace(/\/+$/, "");
+        const siteUrl = (Deno.env.get("APP_BASE_URL") || Deno.env.get("SITE_URL") || "https://jetquote.vercel.app").replace(/\/+$/, "");
         const responseUrl = `${siteUrl}/proposal/respond/${p.public_token}`;
 
         const subject = `Quick follow-up on your proposal from ${businessName}`;

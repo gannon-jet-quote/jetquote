@@ -71,7 +71,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const siteUrl = (Deno.env.get("APP_BASE_URL") || Deno.env.get("SITE_URL") || "").replace(/\/+$/, "");
+    const siteUrl = (Deno.env.get("APP_BASE_URL") || Deno.env.get("SITE_URL") || "https://jetquote.vercel.app").replace(/\/+$/, "");
     const serverResponseUrl = siteUrl && proposal.public_token
       ? `${siteUrl}/proposal/respond/${proposal.public_token}`
       : "";
