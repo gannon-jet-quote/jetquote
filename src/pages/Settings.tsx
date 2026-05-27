@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { buildAppUrl } from "@/lib/appBaseUrl";
+import { isBetaUnlockAllEnabled } from "@/lib/gating";
 
 type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
 type ProfileUpdate = Database["public"]["Tables"]["profiles"]["Update"];
@@ -60,6 +61,8 @@ const Settings = () => {
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(true);
   const [loadErrors, setLoadErrors] = useState<{ profile?: string; branding?: string }>({});
+  const showBetaUnlockIndicator = profile?.role === "admin";
+  const betaUnlockLabel = isBetaUnlockAllEnabled() ? "ON" : "OFF";
 
   const toColorChoice = (value: Json | null | undefined): ColorChoice | null =>
     (value as unknown as ColorChoice) ?? null;
@@ -290,6 +293,11 @@ const Settings = () => {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           <h1 className="mb-2 font-display text-3xl font-bold text-foreground">Settings</h1>
           <p className="mb-8 text-muted-foreground">Update your profile and branding defaults.</p>
+          {showBetaUnlockIndicator && (
+            <div className="mb-6 inline-flex rounded-full border border-border bg-secondary px-3 py-1 text-xs font-medium text-secondary-foreground">
+              Beta Unlock All: {betaUnlockLabel}
+            </div>
+          )}
 
           {loading ? (
             <div className="flex items-center justify-center py-20">
