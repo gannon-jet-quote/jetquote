@@ -1,13 +1,16 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { getProfilePlan, hasProAccess, isBetaUnlockAllEnabled } from "@/lib/gating";
 
 export const FREE_PROPOSAL_LIMIT = 3;
 
 export const usePlan = () => {
   const { profile, user } = useAuth();
-  const plan = profile?.plan === "pro" ? "pro" : "free";
-  const isPro = plan === "pro";
+  const plan = getProfilePlan(profile);
+  const betaUnlockAll = isBetaUnlockAllEnabled();
+  const isPlanPro = plan === "pro";
+  const isPro = hasProAccess(profile);
 
   const [sentThisMonth, setSentThisMonth] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -57,6 +60,8 @@ export const usePlan = () => {
   return {
     plan,
     isPro,
+    isPlanPro,
+    betaUnlockAll,
     sentThisMonth,
     freeLimit: FREE_PROPOSAL_LIMIT,
     remaining,

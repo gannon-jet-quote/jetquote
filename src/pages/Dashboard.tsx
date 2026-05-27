@@ -71,7 +71,7 @@ const Dashboard = () => {
   const { user, profile } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { isPro, sentThisMonth: planSentMonth, freeLimit, atFreeLimit } = usePlan();
+  const { isPro, isPlanPro, betaUnlockAll, sentThisMonth: planSentMonth, freeLimit, atFreeLimit } = usePlan();
   const [proposals, setProposals] = useState<Proposal[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -368,9 +368,11 @@ const Dashboard = () => {
               </div>
               <div>
                 <p className="text-sm font-semibold text-foreground">
-                  {isPro ? "Pro plan" : "Free plan"}
+                  {isPlanPro ? "Pro plan" : "Free plan"}
                 </p>
-                {!isPro ? (
+                {betaUnlockAll ? (
+                  <p className="text-xs text-muted-foreground">Beta Access: Pro features unlocked</p>
+                ) : !isPro ? (
                   <p className="text-xs text-muted-foreground">
                     {Math.min(planSentMonth, freeLimit)} of {freeLimit} proposals sent this month
                     {atFreeLimit ? " — limit reached" : ""}
@@ -380,7 +382,11 @@ const Dashboard = () => {
                 )}
               </div>
             </div>
-            {isPro ? (
+            {betaUnlockAll ? (
+              <span className="inline-flex items-center gap-1 self-start rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-medium text-primary sm:self-auto">
+                <Sparkles className="h-3 w-3" /> Beta Access
+              </span>
+            ) : isPro ? (
               <span className="inline-flex items-center gap-1 self-start rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-medium text-primary sm:self-auto">
                 <Sparkles className="h-3 w-3" /> Pro Active
               </span>

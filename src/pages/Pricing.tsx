@@ -29,7 +29,7 @@ const proFeatures = [
 
 const Pricing = () => {
   const { user } = useAuth();
-  const { isPro } = usePlan();
+  const { isPlanPro, betaUnlockAll } = usePlan();
   const { toast } = useToast();
 
   const handleUpgrade = () => {
@@ -61,7 +61,7 @@ const Pricing = () => {
           <div className="rounded-2xl border border-border bg-card p-8">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="font-display text-2xl font-bold text-foreground">Free</h2>
-              {!isPro && user && (
+              {!isPlanPro && user && (
                 <span className="rounded-full border border-border bg-secondary px-2.5 py-0.5 text-xs text-secondary-foreground">
                   Current plan
                 </span>
@@ -100,9 +100,13 @@ const Pricing = () => {
             </div>
             <div className="mb-4 flex items-center justify-between">
               <h2 className="font-display text-2xl font-bold text-foreground">Pro</h2>
-              {isPro && (
+              {isPlanPro ? (
                 <span className="rounded-full border border-primary/30 bg-primary/10 px-2.5 py-0.5 text-xs text-primary">
                   Active
+                </span>
+              ) : betaUnlockAll && (
+                <span className="rounded-full border border-primary/30 bg-primary/10 px-2.5 py-0.5 text-xs text-primary">
+                  Beta unlocked
                 </span>
               )}
             </div>
@@ -118,7 +122,7 @@ const Pricing = () => {
                 </li>
               ))}
             </ul>
-            {isPro ? (
+            {isPlanPro ? (
               <button
                 disabled
                 className="block w-full rounded-lg bg-primary/20 px-4 py-2.5 text-center text-sm font-medium text-primary"
